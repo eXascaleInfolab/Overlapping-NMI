@@ -37,7 +37,7 @@ const char *gengetopt_args_info_help[] = {
   "  -h, --help     Print help and exit",
   "  -V, --version  Print version and exit",
   "  -v, --verbose  detailed debugging  (default=off)",
-  "  -a, --allnmis  outmut all NMIs (sum-denominator and LFK besides the\n                   max-denominator one)  (default=off)",
+  "  -a, --allnmis  output all NMIs (sum-denominator and LFK besides the\n                   max-denominator one)  (default=off)",
   "  -o, --omega    print the Omega measure (can be slow)  (default=off)",
   "  -t, --textid   use text ids of nodes instead of .cnl format  (default=off)",
     0
@@ -483,7 +483,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'a':	/* outmut all NMIs (sum-denominator and LFK besides the max-denominator one).  */
+        case 'a':	/* output all NMIs (sum-denominator and LFK besides the max-denominator one).  */
         
         
           if (update_arg((void *)&(args_info->allnmis_flag), 0, &(args_info->allnmis_given),

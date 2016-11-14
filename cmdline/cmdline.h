@@ -41,8 +41,8 @@ struct gengetopt_args_info
   const char *version_help; /**< @brief Print version and exit help description.  */
   int verbose_flag;	/**< @brief detailed debugging (default=off).  */
   const char *verbose_help; /**< @brief detailed debugging help description.  */
-  int allnmis_flag;	/**< @brief outmut all NMIs (sum-denominator and LFK besides the max-denominator one) (default=off).  */
-  const char *allnmis_help; /**< @brief outmut all NMIs (sum-denominator and LFK besides the max-denominator one) help description.  */
+  int allnmis_flag;	/**< @brief output all NMIs (sum-denominator and LFK besides the max-denominator one) (default=off).  */
+  const char *allnmis_help; /**< @brief output all NMIs (sum-denominator and LFK besides the max-denominator one) help description.  */
   int omega_flag;	/**< @brief print the Omega measure (can be slow) (default=off).  */
   const char *omega_help; /**< @brief print the Omega measure (can be slow) help description.  */
   int textid_flag;	/**< @brief use text ids of nodes instead of .cnl format (default=off).  */
