@@ -39,21 +39,24 @@ struct gengetopt_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  int verbose_flag;	/**< @brief detailed debugging (default=off).  */
-  const char *verbose_help; /**< @brief detailed debugging help description.  */
+  int sync_flag;	/**< @brief synchronize the node base, for example to fairly evaluate against top K selected clusters that are subset of the original nodes (default=off).  */
+  const char *sync_help; /**< @brief synchronize the node base, for example to fairly evaluate against top K selected clusters that are subset of the original nodes help description.  */
   int allnmis_flag;	/**< @brief output all NMIs (sum-denominator and LFK besides the max-denominator one) (default=off).  */
   const char *allnmis_help; /**< @brief output all NMIs (sum-denominator and LFK besides the max-denominator one) help description.  */
   int omega_flag;	/**< @brief print the Omega measure (can be slow) (default=off).  */
   const char *omega_help; /**< @brief print the Omega measure (can be slow) help description.  */
   int textid_flag;	/**< @brief use text ids of nodes instead of .cnl format (default=off).  */
   const char *textid_help; /**< @brief use text ids of nodes instead of .cnl format help description.  */
+  int verbose_flag;	/**< @brief detailed debugging (default=off).  */
+  const char *verbose_help; /**< @brief detailed debugging help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
-  unsigned int verbose_given ;	/**< @brief Whether verbose was given.  */
+  unsigned int sync_given ;	/**< @brief Whether sync was given.  */
   unsigned int allnmis_given ;	/**< @brief Whether allnmis was given.  */
   unsigned int omega_given ;	/**< @brief Whether omega was given.  */
   unsigned int textid_given ;	/**< @brief Whether textid was given.  */
+  unsigned int verbose_given ;	/**< @brief Whether verbose was given.  */
 
   char **inputs ; /**< @brief unamed options (options without names) */
   unsigned inputs_num ; /**< @brief unamed options number */

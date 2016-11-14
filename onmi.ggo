@@ -6,10 +6,11 @@ version "0.2"
 purpose "Compare sets of clusters by their members (nodes) using various measures (NMI, Omega) and considering overlaps"
 
 usage "onmi [OPTIONS] clsfile1 clsfile2"
-option  "verbose" v  "detailed debugging"  flag off
+option  "sync" s  "synchronize the node base, for example to fairly evaluate against top K selected clusters that are subset of the original nodes"  flag off
 option  "allnmis" a  "output all NMIs (sum-denominator and LFK besides the max-denominator one)"  flag off
 option  "omega" o  "print the Omega measure (can be slow)"  flag off
 option  "textid" t  "use text ids of nodes instead of .cnl format"  flag off
+option  "verbose" v  "detailed debugging"  flag off
 
 
 # Basic structure, see https://www.gnu.org/software/gengetopt/gengetopt.html#Basic-Usage

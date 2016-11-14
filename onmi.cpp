@@ -51,7 +51,7 @@ struct MissingFile {};
 struct EmptyFile {};
 
 template <typename NodeId>
-void onmi(const char * file1, const char * file2, const bool do_omega_also, const bool allnmis);
+void onmi(const char * file1, const char * file2, const bool syncnds, const bool do_omega_also, const bool allnmis);
 
 static int global_verbose_flag = 0;
 
@@ -71,8 +71,8 @@ int main(int argc, char ** argv) {
 	const char *file1 = args_info.inputs[0];
 	const char *file2 = args_info.inputs[1];
 	if(args_info.textid_flag)
-		onmi<string>(file1, file2, args_info.omega_flag, args_info.allnmis_flag);
-	else onmi<uint32_t>(file1, file2, args_info.omega_flag, args_info.allnmis_flag);
+		onmi<string>(file1, file2, args_info.sync_flag, args_info.omega_flag, args_info.allnmis_flag);
+	else onmi<uint32_t>(file1, file2, args_info.sync_flag, args_info.omega_flag, args_info.allnmis_flag);
 }
 
 //typedef string NodeId;
@@ -146,6 +146,7 @@ void parseHeader(ifstream& fsm, string& line, size_t& clsnum, size_t& ndsnum) {
 
 		istringstream fields(line);
 		string field;
+
 		// Read clusters specification
 		fields >> field;
 		if(field.length() != clsmark.length())
@@ -156,23 +157,48 @@ void parseHeader(ifstream& fsm, string& line, size_t& clsnum, size_t& ndsnum) {
 		if(field != clsmark)
 			continue;
 		fields >> clsnum;
+
 		// Read nodes specification
 		fields >> field;
 		// Allow optional ','
 		if(!field.empty() && field[0] == ',')
 			fields >> field;
-		if(field.length() != ndsmark.length())
-			break;
-		for(size_t i = 0; i < field.length(); ++i)
-			field[i] = tolower(field[i]);
-		if(field != ndsmark)
-			break;
-		fields >> ndsnum;
+		if(field.length() == ndsmark.length()) {
+			for(size_t i = 0; i < field.length(); ++i)
+				field[i] = tolower(field[i]);
+			if(field == ndsmark)
+				fields >> ndsnum;
+		}
+		// Get following line for the unified subsequent processing
+		getline(fsm, line);
+		break;
 	}
 }
 
 template <typename NodeId>
-Grouping<NodeId> fileToSet(const char *file) {
+bool loadCluster(typename Grouping<NodeId>::value_type& cl, const string& line)
+{
+	istringstream fields(line);
+	for(NodeId field; fields >> field;)
+		cl.insert(field);
+	return !cl.empty();
+}
+
+template <>
+bool loadCluster<string>(typename Grouping<string>::value_type& cl, const string& line)
+{
+	istringstream fields(line);
+	for(string field; fields >> field; ) {
+		// Skip commented tails
+		if(field.empty() || field[0] == '#')
+			break;
+		cl.insert(field);
+	}
+	return !cl.empty();
+}
+
+template <typename NodeId>
+Grouping<NodeId> fileToSet(const char *file, unordered_set<NodeId> *nodes=nullptr) {
 	Grouping<NodeId> ss;
 	ifstream f(file);
 	unless(f.is_open())
@@ -183,6 +209,11 @@ Grouping<NodeId> fileToSet(const char *file) {
 	size_t  ndsnum = 0;  // The number of clusters
 	parseHeader<NodeId>(f, line, clsnum, ndsnum);
 
+	if(nodes && ndsnum) {
+		nodes->clear();
+		nodes->reserve(ndsnum);
+	}
+
 	// Note: the processing is started from the read line if it was not a comment
 	size_t  mbscnt = 0;  // The number of member nodes in all clusters, should be >= ndsnum
 	do {
@@ -190,68 +221,18 @@ Grouping<NodeId> fileToSet(const char *file) {
 		if(line.empty() || line[0] == '#')
 			continue;
 
-		typename Grouping<NodeId>::value_type s;
-		istringstream fields(line);
+		typename Grouping<NodeId>::value_type cl;
 		//forEach(const string &field, amd::rangeOverStream(fields, "\t ")) {
-		bool comment = false;
-		for(NodeId field; fields >> field;)
-			s.insert(field);
-		if(!s.empty()) {
-			mbscnt += s.size();
-			ss.push_back(move(s));
+		if(loadCluster<NodeId>(cl, line)) {
+			if(nodes)
+				nodes->insert(cl.begin(), cl.end());
+			mbscnt += cl.size();
+			ss.push_back(move(cl));
 		}
 		//else cerr << "Warning: ignoring empty clusters in the file: " << file << endl;
 	} while(getline(f, line));
 
 	if(ndsnum && mbscnt != ndsnum) {
-		if(mbscnt < ndsnum)
-			cerr << "Warning: the number of nodes specification is incorrect (specified: "
-				<< ndsnum << ") in the file header " << file
-				<< ". The actual number of cluster members is " << mbscnt << endl;
-		else cout << "The clusters in " << file << " contain "
-			<< double(mbscnt - ndsnum) / ndsnum << "% of overlapping nodes" << endl;
-	}
-
-	return ss;
-}
-
-template <>
-Grouping<string> fileToSet(const char * file) {
-	typedef string  NodeId;
-	Grouping<NodeId> ss;
-	ifstream f(file);
-	unless(f.is_open())
-		throw  MissingFile();
-
-	string  line;
-	size_t  clsnum = 0;  // The number of clusters
-	size_t  ndsnum = 0;  // The number of clusters
-	parseHeader<NodeId>(f, line, clsnum, ndsnum);
-
-	// Note: the processing is started from the read line if it was not a comment
-	size_t  mbscnt = 0;  // The number of member nodes in all clusters, should be >= ndsnum
-	do {
-		// Skip empty lines and comments
-		if(line.empty() || line[0] == '#')
-			continue;
-
-		typename Grouping<NodeId>::value_type s;
-		istringstream fields(line);
-		bool comment = false;
-		for(string field; fields >> field; ) {
-			if(!field.empty()) {
-				// Skip commented tails
-				if(field[0] == '#')
-					break;
-				s.insert(field);
-			}
-		}
-		if(!s.empty())
-			ss.push_back(move(s));
-		//else cerr << "Warning: ignoring empty clusters in the file: " << file << endl;
-	} while(getline(f, line));
-
-	if(mbscnt != ndsnum) {
 		if(mbscnt < ndsnum)
 			cerr << "Warning: the number of nodes specification is incorrect (specified: "
 				<< ndsnum << ") in the file header " << file
@@ -601,9 +582,54 @@ pair<double,double> omega(const NodeToGroup<NodeId> &ng1, const NodeToGroup<Node
 }
 
 template <typename NodeId>
-void onmi(const char * file1, const char * file2, const bool do_omega_also, const bool allnmis) {
-	Grouping<NodeId> g1 = fileToSet<NodeId>(file1);
-	Grouping<NodeId> g2 = fileToSet<NodeId>(file2);
+void syncNodes(Grouping<NodeId>& dcls, unordered_set<NodeId>& dnds, const unordered_set<NodeId>& snds)  // Sync nodes in the group 2
+{
+	dnds.clear();
+	const auto sne = snds.end();
+	// Start in the reverse direction for the vector to reduce the number of relocations
+	for(auto icl = --dcls.end(); icl != --dcls.begin();) {
+		for(auto ind = icl->begin(); ind != icl->end();) {
+			// Remove all non-matching nodes
+			if(snds.find(*ind) != sne)
+				dnds.insert(*ind++);
+			else ind = icl->erase(ind);
+		}
+		if(icl->empty())
+			icl = --dcls.erase(icl);
+		else --icl;
+	}
+}
+
+template <typename NodeId>
+void onmi(const char * file1, const char * file2, const bool syncnds, const bool do_omega_also, const bool allnmis) {
+	Grouping<NodeId>  g1, g2;
+	if(syncnds) {
+		unordered_set<NodeId>  nodes1;
+		unordered_set<NodeId>  nodes2;
+		g1 = fileToSet<NodeId>(file1, &nodes1);
+		g2 = fileToSet<NodeId>(file2, &nodes2);
+		if(nodes1.size() != nodes2.size()) {
+            cerr << "WARNING, the number of nodes is different in the clusterings: "
+                << nodes1.size() << " vs " << nodes2.size() << ". The nodes"
+                " will be synchronized by removing non-matching ones from the largest clustering\n";
+			if(nodes1.size() < nodes2.size()) {
+				syncNodes(g2, nodes2, nodes1);  // Sync nodes in the group 2 to nodes1 base
+				assert(nodes2.size() <= nodes1.size());
+			} else {
+				syncNodes(g1, nodes1, nodes2);  // Sync nodes in the group 1 to nodes2 base
+				assert(nodes1.size() <= nodes2.size());
+			}
+			// Check whether the sync is successful
+			if(nodes1.size() != nodes2.size()) {
+                cerr << "After the synchronization  ndsnum1: " << nodes1.size() << ", ndsnum2: " << nodes2.size() << endl;
+                throw std::domain_error("Input clusterings have different node base and can't be synchronized gracefully\n");
+			}
+		}
+	} else {
+		g1 = fileToSet<NodeId>(file1);
+		g2 = fileToSet<NodeId>(file2);
+	}
+
 	PP1_v(g1.size());
 	PP1_v(g2.size());
 	unless(g1.size() > 0) throw EmptyFile();

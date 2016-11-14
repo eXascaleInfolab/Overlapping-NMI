@@ -36,10 +36,11 @@ const char *gengetopt_args_info_description = "";
 const char *gengetopt_args_info_help[] = {
   "  -h, --help     Print help and exit",
   "  -V, --version  Print version and exit",
-  "  -v, --verbose  detailed debugging  (default=off)",
+  "  -s, --sync     synchronize the node base, for example to fairly evaluate\n                   against top K selected clusters that are subset of the\n                   original nodes  (default=off)",
   "  -a, --allnmis  output all NMIs (sum-denominator and LFK besides the\n                   max-denominator one)  (default=off)",
   "  -o, --omega    print the Omega measure (can be slow)  (default=off)",
   "  -t, --textid   use text ids of nodes instead of .cnl format  (default=off)",
+  "  -v, --verbose  detailed debugging  (default=off)",
     0
 };
 
@@ -65,20 +66,22 @@ void clear_given (struct gengetopt_args_info *args_info)
 {
   args_info->help_given = 0 ;
   args_info->version_given = 0 ;
-  args_info->verbose_given = 0 ;
+  args_info->sync_given = 0 ;
   args_info->allnmis_given = 0 ;
   args_info->omega_given = 0 ;
   args_info->textid_given = 0 ;
+  args_info->verbose_given = 0 ;
 }
 
 static
 void clear_args (struct gengetopt_args_info *args_info)
 {
   FIX_UNUSED (args_info);
-  args_info->verbose_flag = 0;
+  args_info->sync_flag = 0;
   args_info->allnmis_flag = 0;
   args_info->omega_flag = 0;
   args_info->textid_flag = 0;
+  args_info->verbose_flag = 0;
   
 }
 
@@ -89,10 +92,11 @@ void init_args_info(struct gengetopt_args_info *args_info)
 
   args_info->help_help = gengetopt_args_info_help[0] ;
   args_info->version_help = gengetopt_args_info_help[1] ;
-  args_info->verbose_help = gengetopt_args_info_help[2] ;
+  args_info->sync_help = gengetopt_args_info_help[2] ;
   args_info->allnmis_help = gengetopt_args_info_help[3] ;
   args_info->omega_help = gengetopt_args_info_help[4] ;
   args_info->textid_help = gengetopt_args_info_help[5] ;
+  args_info->verbose_help = gengetopt_args_info_help[6] ;
   
 }
 
@@ -209,14 +213,16 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "help", 0, 0 );
   if (args_info->version_given)
     write_into_file(outfile, "version", 0, 0 );
-  if (args_info->verbose_given)
-    write_into_file(outfile, "verbose", 0, 0 );
+  if (args_info->sync_given)
+    write_into_file(outfile, "sync", 0, 0 );
   if (args_info->allnmis_given)
     write_into_file(outfile, "allnmis", 0, 0 );
   if (args_info->omega_given)
     write_into_file(outfile, "omega", 0, 0 );
   if (args_info->textid_given)
     write_into_file(outfile, "textid", 0, 0 );
+  if (args_info->verbose_given)
+    write_into_file(outfile, "verbose", 0, 0 );
   
 
   i = EXIT_SUCCESS;
@@ -450,14 +456,15 @@ cmdline_parser_internal (
       static struct option long_options[] = {
         { "help",	0, NULL, 'h' },
         { "version",	0, NULL, 'V' },
-        { "verbose",	0, NULL, 'v' },
+        { "sync",	0, NULL, 's' },
         { "allnmis",	0, NULL, 'a' },
         { "omega",	0, NULL, 'o' },
         { "textid",	0, NULL, 't' },
+        { "verbose",	0, NULL, 'v' },
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVvaot", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVsaotv", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -473,12 +480,12 @@ cmdline_parser_internal (
           cmdline_parser_free (&local_args_info);
           exit (EXIT_SUCCESS);
 
-        case 'v':	/* detailed debugging.  */
+        case 's':	/* synchronize the node base, for example to fairly evaluate against top K selected clusters that are subset of the original nodes.  */
         
         
-          if (update_arg((void *)&(args_info->verbose_flag), 0, &(args_info->verbose_given),
-              &(local_args_info.verbose_given), optarg, 0, 0, ARG_FLAG,
-              check_ambiguity, override, 1, 0, "verbose", 'v',
+          if (update_arg((void *)&(args_info->sync_flag), 0, &(args_info->sync_given),
+              &(local_args_info.sync_given), optarg, 0, 0, ARG_FLAG,
+              check_ambiguity, override, 1, 0, "sync", 's',
               additional_error))
             goto failure;
         
@@ -509,6 +516,16 @@ cmdline_parser_internal (
           if (update_arg((void *)&(args_info->textid_flag), 0, &(args_info->textid_given),
               &(local_args_info.textid_given), optarg, 0, 0, ARG_FLAG,
               check_ambiguity, override, 1, 0, "textid", 't',
+              additional_error))
+            goto failure;
+        
+          break;
+        case 'v':	/* detailed debugging.  */
+        
+        
+          if (update_arg((void *)&(args_info->verbose_flag), 0, &(args_info->verbose_given),
+              &(local_args_info.verbose_given), optarg, 0, 0, ARG_FLAG,
+              check_ambiguity, override, 1, 0, "verbose", 'v',
               additional_error))
             goto failure;
         
