@@ -22,11 +22,13 @@
 #include <sstream>
 #include <fstream>
 #include <exception>
+#include <limits>
 
-#include <algorithm>
 #include <vector>
-#include <map>
+#include <string>
 #include <set>
+#include <map>
+#include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -48,13 +50,14 @@ using namespace std;
 struct MissingFile {};
 struct EmptyFile {};
 
+template <typename NodeId>
 void oNMI(const char * file1, const char * file2, const bool do_omega_also);
 
 static int global_verbose_flag = 0;
 
 int main(int argc, char ** argv) {
-	// std::locale system_locale("");
-	// std::cout.imbue(system_locale); // to get comma-separated integers.
+	// locale system_locale("");
+	// cout.imbue(system_locale); // to get comma-separated integers.
 	gengetopt_args_info args_info;
 	if (cmdline_parser (argc, argv, &args_info) != 0)
 		exit(1) ;
@@ -67,15 +70,21 @@ int main(int argc, char ** argv) {
 	}
 	const char *file1 = args_info.inputs[0];
 	const char *file2 = args_info.inputs[1];
-	oNMI(file1, file2, args_info.omega_flag);
+	if(args_info.textid_flag)
+		oNMI<string>(file1, file2, args_info.omega_flag);
+	else oNMI<size_t>(file1, file2, args_info.omega_flag);
 }
 
-typedef std::string Node;
-typedef std::vector< std::set< Node > > Grouping;
+//typedef string NodeId;
+
+template <typename NodeId>
+using Grouping = vector< set< NodeId > >;
+
+template <typename NodeId>
 struct NodeToGroup : public
-		     unordered_map< Node, set<int> >
+		     unordered_map< NodeId, set<int> >
 {
-	int sharedGroups(const Node n_, const Node m_) const {
+	int sharedGroups(const NodeId n_, const NodeId m_) const {
 		// PP2(n_,m_);
 		static const set<int> emptySet;
 
@@ -108,56 +117,205 @@ struct NodeToGroup : public
 		return inter;
 	}
 };
+
 struct OverlapMatrix {
-	std::map< pair<int,int> , int> om; // the pair is an ordered pair.
+	map< pair<int,int> , int> om; // the pair is an ordered pair.
 	int N;
+
+	OverlapMatrix(): om(), N(0)  {}
 };
 
-Grouping fileToSet(const char * file) {
-	Grouping ss;
-	std::ifstream f(file);
+template <typename NodeId>
+void parseHeader(ifstream& fsm, size_t& clsnum, size_t& ndsnum) {
+	// Process the header, which is a special initial comment
+	// The target header is:  # Clusters: <cls_num>[,] Nodes: <cls_num>
+	string line;
+	const string  clsmark = "clusters";
+	const string  ndsmark = "nodes";
+	while(getline(fsm, line)) {
+		// Skip empty lines
+		if(line.empty())
+			continue;
+		// Consider only subsequent comments
+		if(line[0] != '#')
+			break;
+
+		// 1. Replace the staring comment mark '#' with space to allow "#clusters:"
+		// 2. Replace ':' with space to allow "Clusters:<clsnum>"
+		for(size_t pos = 0; pos != string::npos; pos = line.find(':', pos + 1))
+			line[pos] = ' ';
+
+		istringstream fields(line);
+		string field;
+		// Read clusters specification
+		fields >> field;
+		if(field.length() != clsmark.length())
+			continue;
+		// Conver to lower case
+		for(size_t i = 0; i < field.length(); ++i)
+			field[i] = tolower(field[i]);
+		if(field != clsmark)
+			continue;
+		fields >> clsnum;
+		// Read nodes specification
+		fields >> field;
+		// Allow optional ','
+		if(!field.empty() && field[0] == ',')
+			fields >> field;
+		if(field.length() != ndsmark.length())
+			break;
+		for(size_t i = 0; i < field.length(); ++i)
+			field[i] = tolower(field[i]);
+		if(field != ndsmark)
+			break;
+		fields >> ndsnum;
+	}
+}
+
+template <typename NodeId>
+Grouping<NodeId> fileToSet(const char *file) {
+	Grouping<NodeId> ss;
+	ifstream f(file);
 	unless(f.is_open())
 		throw  MissingFile();
-	for(std::string line; getline(f, line); ) {
-		Grouping::value_type s;
+
+	string  line;
+	size_t  clsnum = 0;  // The number of clusters
+	size_t  ndsnum = 0;  // The number of clusters
+	parseHeader<NodeId>(f, clsnum, ndsnum);
+
+	// Note: the processing is started from the read line if it was not a comment
+	size_t  mbscnt = 0;  // The number of member nodes in all clusters, should be >= ndsnum
+	do {
+		// Skip empty lines and comments
+		if(line.empty() || line[0] == '#')
+			continue;
+
+		typename Grouping<NodeId>::value_type s;
 		istringstream fields(line);
-		//forEach(const std::string &field, amd::rangeOverStream(fields, "\t ")) {
-		for(std::string field; fields >> field; ) {
-			if(field.length() == 0) {
-				cerr << "Warning: two consecutive tabs, or tab at the start of a line. Ignoring empty fields like this" << endl;
-			} else {
-				s.insert(field);
-			}
-		}
-		if(s.size()==0) {
-			cerr << "Warning: ignoring empty sets in file: " << file << endl;
-		} else {
-			ss.push_back(s);
-		}
+		//forEach(const string &field, amd::rangeOverStream(fields, "\t ")) {
+		bool comment = false;
+		for(NodeId field; fields >> field;)
+			s.insert(field);
+		if(!s.empty()==0) {
+			mbscnt += s.size();
+			ss.push_back(move(s));
+		} else cerr << "Warning: ignoring empty clusters in the file: " << file << endl;
+	} while(getline(f, line));
+
+	if(mbscnt != ndsnum) {
+		if(mbscnt < ndsnum)
+			cerr << "Warning: the number of nodes specification is incorrect (specified: "
+				<< ndsnum << ") in the file header " << file
+				<< ". The actual number of cluster members is " << mbscnt << endl;
+		else cout << "The clusters in " << file << " contain "
+			<< double(mbscnt - ndsnum) / ndsnum << "% of overlapping nodes" << endl;
 	}
+
 	return ss;
 }
-NodeToGroup nodeToGroup(const Grouping &g) {
-	NodeToGroup n2g;
+
+template <>
+Grouping<string> fileToSet(const char * file) {
+	typedef string  NodeId;
+	Grouping<NodeId> ss;
+	ifstream f(file);
+	unless(f.is_open())
+		throw  MissingFile();
+
+	string  line;
+	size_t  clsnum = 0;  // The number of clusters
+	size_t  ndsnum = 0;  // The number of clusters
+	parseHeader<NodeId>(f, clsnum, ndsnum);
+
+	// Note: the processing is started from the read line if it was not a comment
+	size_t  mbscnt = 0;  // The number of member nodes in all clusters, should be >= ndsnum
+	do {
+		// Skip empty lines and comments
+		if(line.empty() || line[0] == '#')
+			continue;
+
+		typename Grouping<NodeId>::value_type s;
+		istringstream fields(line);
+		bool comment = false;
+		for(string field; fields >> field; ) {
+			if(!field.empty()) {
+				// Skip commented tails
+				if(field[0] == '#')
+					break;
+				s.insert(field);
+			} else cerr << "Warning: two consecutive tabs, or tab at the start of"
+				" a line. Ignoring empty fields like this" << endl;
+		}
+		if(!s.empty())
+			ss.push_back(move(s));
+		else cerr << "Warning: ignoring empty sets in file: " << file << endl;
+	} while(getline(f, line));
+
+	if(mbscnt != ndsnum) {
+		if(mbscnt < ndsnum)
+			cerr << "Warning: the number of nodes specification is incorrect (specified: "
+				<< ndsnum << ") in the file header " << file
+				<< ". The actual number of cluster members is " << mbscnt << endl;
+		else cout << "The clusters in " << file << " contain "
+			<< double(mbscnt - ndsnum) / ndsnum << "% of overlapping nodes" << endl;
+	}
+
+	return ss;
+}
+
+//// Parse not considering comments
+//template <>
+//Grouping<string> fileToSet(const char * file) {
+//	Grouping<string> ss;
+//	ifstream f(file);
+//	unless(f.is_open())
+//		throw  MissingFile();
+//	string line;
+//
+//	// Note: the processing is started from the read line if it was not a comment
+//	while(getline(f, line)) {
+//		// Skip empty lines and comments
+//		if(line.empty())
+//			continue;
+//
+//		typename Grouping<string>::value_type s;
+//		istringstream fields(line);
+//		bool comment = false;
+//		for(string field; fields >> field; ) {
+//			if(!field.empty()) {
+//				s.insert(field);
+//			} else cerr << "Warning: two consecutive tabs, or tab at the start of"
+//				" a line. Ignoring empty fields like this" << endl;
+//		}
+//		if(!s.empty())
+//			ss.push_back(move(s));
+//		else cerr << "Warning: ignoring empty sets in file: " << file << endl;
+//	}
+//
+//	return ss;
+//}
+
+template <typename NodeId>
+NodeToGroup<NodeId> nodeToGroup(const Grouping<NodeId> &g) {
+	NodeToGroup<NodeId> n2g;
 	for(int grpId = 0; grpId < (int)g.size(); grpId++) {
-		const Grouping::value_type &grp = g.at(grpId);
-		for(const Node &n : grp) {
+		const typename Grouping<NodeId>::value_type &grp = g.at(grpId);
+		for(const NodeId &n : grp) {
 			n2g[n].insert(grpId);
 		}
 	}
 	return n2g;
 }
 
-
-const OverlapMatrix overlapMatrix(const NodeToGroup &ng1, const NodeToGroup &ng2) {
+template <typename NodeId>
+const OverlapMatrix overlapMatrix(const NodeToGroup<NodeId> &ng1, const NodeToGroup<NodeId> &ng2) {
 	OverlapMatrix om;
-	unordered_set< Node > nodes;
-	for(const NodeToGroup::value_type &n : ng2) {
+	unordered_set< NodeId > nodes;
+	for(const typename NodeToGroup<NodeId>::value_type &n : ng2)
 		nodes.insert(n.first);
-	}
-	for(const NodeToGroup::value_type &n: ng1) {
+	for(const typename NodeToGroup<NodeId>::value_type &n: ng1)
 		nodes.insert(n.first);
-	}
 	for(auto const &n: nodes) {
 		if(ng1.count(n)) for(const int g1: ng1.find(n)->second) {
 			if(ng2.count(n)) for(const int g2: ng2.find(n)->second) {
@@ -177,9 +335,10 @@ double H(const int x, const int N) {
 	return -x * log2(Px);
 }
 double h (const double p) {
-	if(p==0)
+	if(p < numeric_limits<double>::epsilon()) {
+		assert(p >= 0);
 		return 0;
-	assert(p>0);
+	}
 	return -p*log2(p);
 }
 double H_X_given_Y (const int y, const int x, const int o, const int N) {
@@ -224,14 +383,15 @@ double H_X_given_Y (const int y, const int x, const int o, const int N) {
 			return H_XY - H_Y;
 }
 
-double HX_given_BestY (const OverlapMatrix &om, const Grouping &g1, const Grouping &g2, const int realxId) {
+template<typename NodeId>
+double HX_given_BestY (const OverlapMatrix &om, const Grouping<NodeId> &g1, const Grouping<NodeId> &g2, const int realxId) {
 	// realxId is a community in g2.
 	// X is g2, Y is g1
 	// we're looking for the bits to encode X_realxId given all of Y
 	const int sizeOfXComm = g2.at(realxId).size();
 	double bestSoFar = H(sizeOfXComm,om.N) + H(om.N-sizeOfXComm,om.N);
-	std::map< pair<int,int> ,int >::const_iterator            i = om.om.lower_bound(make_pair(realxId  , std::numeric_limits<int>::min()));
-	std::map< pair<int,int> ,int >::const_iterator   endOfRange = om.om.lower_bound(make_pair(realxId+1, std::numeric_limits<int>::min()));
+	map< pair<int,int> ,int >::const_iterator            i = om.om.lower_bound(make_pair(realxId  , numeric_limits<int>::min()));
+	map< pair<int,int> ,int >::const_iterator   endOfRange = om.om.lower_bound(make_pair(realxId+1, numeric_limits<int>::min()));
 	for(; i != endOfRange; ++           i)
 	{
 		int xId =  i->first.first;
@@ -249,8 +409,8 @@ double HX_given_BestY (const OverlapMatrix &om, const Grouping &g1, const Groupi
 	return bestSoFar;
 }
 
-template<bool normalizeTooSoon>
-double VI_oneSide (const OverlapMatrix &om, const Grouping &g1, const Grouping &g2) {
+template<bool normalizeTooSoon, typename NodeId>
+double VI_oneSide (const OverlapMatrix &om, const Grouping<NodeId> &g1, const Grouping<NodeId> &g2) {
 	// this doesn't return the (N)MI. It's the non-mutual information, optionally normalized too soon
 	const int N = om.N;
 	double total = 0.0;
@@ -260,8 +420,9 @@ double VI_oneSide (const OverlapMatrix &om, const Grouping &g1, const Grouping &
 			const int x = g2.at(toId).size();
 			const double H_X = H(x,N) + H(N-x,N);
 			const double norm = unnorm / H_X; // might be NaN
-			if(H_X == 0.0) { // the communities take up the whole set of nodes, and hence won't need any bits to be encoded. No need to add anything to 'total'
-				assert(unnorm == 0.0);
+			if(H_X < numeric_limits<double>::epsilon()) { // the communities take up the whole set of nodes, and hence won't need any bits to be encoded. No need to add anything to 'total'
+				assert(unnorm < numeric_limits<double>::epsilon()
+					&& "unnorm should be ~=0 when H_X ~= 0");
 
 				// in this case norm is 0/0, but we'll just define this as 1 // This is the bugfix/ambiguityfix to make it the same as the LFK software
 				total += 1.0;
@@ -274,8 +435,8 @@ double VI_oneSide (const OverlapMatrix &om, const Grouping &g1, const Grouping &
 					PP(unnorm / H_X);
 					PP(unnorm - H_X);
 				}
-				assert(norm <= 1.01);
-				assert(norm >= -0.01);
+				assert(norm <= 1.01 && norm >= -0.01
+					&& "norm should E [0, 1]");
 				total += norm;
 			}
 		} else {
@@ -287,28 +448,36 @@ double VI_oneSide (const OverlapMatrix &om, const Grouping &g1, const Grouping &
 	} else
 		return total;
 }
-double LFKNMI(const OverlapMatrix &om, const OverlapMatrix &omFlipped, const Grouping &g1, const Grouping &g2) {
+
+template<typename NodeId>
+double LFKNMI(const OverlapMatrix &om, const OverlapMatrix &omFlipped
+, const Grouping<NodeId> &g1, const Grouping<NodeId> &g2) {
 	return 1.0 - 0.5 *
 		( VI_oneSide<true>(omFlipped, g1, g2)
 		+ VI_oneSide<true>(om       , g2, g1) );
 }
+
 struct Max {
 	double operator() (const double H_Xs, const double H_Ys) const {
 		return H_Xs > H_Ys ? H_Xs : H_Ys;
 	}
 };
+
 struct Sum {
 	double operator() (const double H_Xs, const double H_Ys) const {
 		return 0.5 * (H_Xs + H_Ys);
 	}
 };
+
 struct Min {
 	double operator() (const double H_Xs, const double H_Ys) const {
 		return H_Xs > H_Ys ? H_Ys : H_Xs;
 	}
 };
-template<class Combiner>
-double aaronNMI(const OverlapMatrix &om, const OverlapMatrix &omFlipped, const Grouping &g1, const Grouping &g2) {
+
+template<typename Combiner, typename NodeId>
+double aaronNMI(const OverlapMatrix &om, const OverlapMatrix &omFlipped
+, const Grouping<NodeId> &g1, const Grouping<NodeId> &g2) {
 	double H_Xs = 0.0;
 	for(int toId = 0; toId < (int)g2.size(); toId++) {
 		const int x = g2.at(toId).size();
@@ -320,14 +489,15 @@ double aaronNMI(const OverlapMatrix &om, const OverlapMatrix &omFlipped, const G
 		H_Ys += H(x, om.N)+H(om.N-x, om.N);
 	}
 	return
-		0.5*( H_Xs+H_Ys - VI_oneSide<false>(omFlipped, g1, g2) - VI_oneSide<false>(om, g2, g1) ) 
+		0.5*( H_Xs+H_Ys - VI_oneSide<false>(omFlipped, g1, g2) - VI_oneSide<false>(om, g2, g1) )
 		/ Combiner()(H_Xs, H_Ys)
 		;
 }
 
 typedef long long int lli;
 
-pair<double,double> omega(const NodeToGroup &ng1, const NodeToGroup &ng2) {
+template <typename NodeId>
+pair<double,double> omega(const NodeToGroup<NodeId> &ng1, const NodeToGroup<NodeId> &ng2) {
 	// To understand this implement this implementation, look at the formulation
 	// on page 6 of this: http://www.aclweb.org/anthology/W12-2602
 	// That defines:
@@ -344,12 +514,12 @@ pair<double,double> omega(const NodeToGroup &ng1, const NodeToGroup &ng2) {
 	// I think the minimum is -1.0, although not certain that can be attained.
 
 	// First step is to identify all the distinct nodes
-	set<Node> nodes;
-	for(NodeToGroup::const_iterator i = ng1.begin(); i!=ng1.end(); i++) { nodes.insert(i->first); }
-	for(NodeToGroup::const_iterator i = ng2.begin(); i!=ng2.end(); i++) { nodes.insert(i->first); }
+	set<NodeId> nodes;
+	for(typename NodeToGroup<NodeId>::const_iterator i = ng1.begin(); i!=ng1.end(); i++) { nodes.insert(i->first); }
+	for(typename NodeToGroup<NodeId>::const_iterator i = ng2.begin(); i!=ng2.end(); i++) { nodes.insert(i->first); }
 
-	vector<Node> nodesv;
-	for(set<Node>::const_iterator i=nodes.begin(); i!=nodes.end(); i++) { nodesv.push_back(*i); }
+	vector<NodeId> nodesv;
+	for(typename set<NodeId>::const_iterator i=nodes.begin(); i!=nodes.end(); i++) { nodesv.push_back(*i); }
 	const int N=nodesv.size();
 
 	// Now to start populating the relevant statistics
@@ -362,8 +532,8 @@ pair<double,double> omega(const NodeToGroup &ng1, const NodeToGroup &ng2) {
 	for(int n=0; n<N; n++) {
 		for(int m=0; m<n; m++) {
 			// PP2(n,m);
-			const Node n_ = nodesv.at(n);
-			const Node m_ = nodesv.at(m);
+			const NodeId n_ = nodesv.at(n);
+			const NodeId m_ = nodesv.at(m);
 			// PP2(n_,m_);
 			const int a = ng1.sharedGroups(n_,m_);
 			const int c = ng2.sharedGroups(n_,m_);
@@ -431,15 +601,16 @@ pair<double,double> omega(const NodeToGroup &ng1, const NodeToGroup &ng2) {
 	return make_pair(O,L2norm);
 }
 
+template <typename NodeId>
 void oNMI(const char * file1, const char * file2, const bool do_omega_also) {
-	Grouping g1 = fileToSet(file1);
-	Grouping g2 = fileToSet(file2);
+	Grouping<NodeId> g1 = fileToSet<NodeId>(file1);
+	Grouping<NodeId> g2 = fileToSet<NodeId>(file2);
 	PP1_v(g1.size());
 	PP1_v(g2.size());
 	unless(g1.size() > 0) throw EmptyFile();
 	unless(g2.size() > 0) throw EmptyFile();
-	NodeToGroup n2g1 = nodeToGroup(g1);
-	NodeToGroup n2g2 = nodeToGroup(g2);
+	NodeToGroup<NodeId> n2g1 = nodeToGroup(g1);
+	NodeToGroup<NodeId> n2g2 = nodeToGroup(g2);
 	PP1_v(n2g1.size());
 	PP1_v(n2g2.size());
 	const OverlapMatrix om = overlapMatrix(n2g1, n2g2);

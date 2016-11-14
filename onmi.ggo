@@ -1,0 +1,38 @@
+# Configuration file for the automatic generation of the ONMI input options parsing
+
+package "onmi"
+version "0.1"
+
+purpose "Compare sets of sets using various measures"
+
+usage "oNMI [OPTIONS]... filename filename"
+option  "verbose" v  "detailed debugging"  flag off
+option  "omega" o  "print the Omega measure (can be slow)"  flag off
+option  "textid" t  "use text ids of nodes instead of .cnl format"  flag off
+
+
+# Basic structure, see https://www.gnu.org/software/gengetopt/gengetopt.html#Basic-Usage
+#     package "<packname>"
+#     version "<version>"
+#     purpose "<purpose>"
+#     usage "<usage>"
+#     description "<description>"
+#     versiontext "<versiontext>"
+#
+#     args "<command line options>"
+#
+#     option <long> <short> "<desc>"
+#         {details="<detailed description>"}
+#         {argtype} {typestr="<type descr>"}
+#         {values="<value1>","<value2>",...}
+#         {default="<default value>"}
+#         {dependon="<other option>"}
+#         {required} {argoptional} {multiple}
+#         {hidden}
+#
+#     option <long> <short> "<desc>" flag <on/off>
+#
+#     section "section name" {sectiondesc="optional section description"}
+#
+#     text "a textual sentence"
+#
