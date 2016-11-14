@@ -25,9 +25,9 @@
 
 #include "cmdline.h"
 
-const char *gengetopt_args_info_purpose = "Compare sets of sets using various measures";
+const char *gengetopt_args_info_purpose = "Compare sets of clusters by their members (nodes) using various measures (NMI,\nOmega) and considering overlaps";
 
-const char *gengetopt_args_info_usage = "Usage: oNMI [OPTIONS]... filename filename";
+const char *gengetopt_args_info_usage = "Usage: onmi [OPTIONS] clsfile1 clsfile2";
 
 const char *gengetopt_args_info_versiontext = "";
 

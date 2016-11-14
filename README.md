@@ -33,20 +33,29 @@ Just execute `$ make`.
 # Usage
 
 ```
-$ onmi FILE1 FILE2
+$ onmi clsfile1 clsfile2
 ```
 Execution Options:
 ```
--h, --help     Print help and exit
--V, --version  Print version and exit
--v, --verbose  detailed debugging  (default=off)
--o, --omega    print the Omega measure (can be slow)  (default=off)
+$ ./onmi -h
+onmi 0.2
+
+Compare sets of clusters by their members (nodes) using various measures (NMI,
+Omega) and considering overlaps
+
+Usage: onmi [OPTIONS] clsfile1 clsfile2
+
+  -h, --help     Print help and exit
+  -V, --version  Print version and exit
+  -v, --verbose  detailed debugging  (default=off)
+  -o, --omega    print the Omega measure (can be slow)  (default=off)
+  -t, --textid   use text ids of nodes instead of .cnl format  (default=off)
 ```
-The filenames record the sets of communities. A typical use case is to have
+The files contain list of clusters (communities, modules). A typical use case is to have
 the "true" communities in one file and and those found by your algorithm
 in the other file.
 
-Input file format is CNL (cluster nodes list). One line per community. The nodes are
+Input file format is CNL (cluster nodes list). One line per cluster. The nodes are
 separated by whitespace, and any non-whitespace characters may be used in the
 node names. Line comments are allowed using `#`. Example of the CNL format:
 ```
@@ -56,6 +65,9 @@ node names. Line comments are allowed using `#`. Example of the CNL format:
 1 2
 2
 ```
+A node id is unsigned integer by default, and it can be any word not starting with the comment symbol `#` if `-t` option is specified to used text ids.
+
+> Any line starting with `#` is omitted as a comment, also as any remained part of the line starting with `#` in the *textid* mode
 
 # Related Projects
 - [GenConvNMI](https://github.com/eXascaleInfolab/GenConvNMI) - Overlapping NMI evaluation that is compatible with the original NMI (unlike the `onmi`).

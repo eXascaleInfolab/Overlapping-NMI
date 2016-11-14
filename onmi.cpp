@@ -72,7 +72,7 @@ int main(int argc, char ** argv) {
 	const char *file2 = args_info.inputs[1];
 	if(args_info.textid_flag)
 		oNMI<string>(file1, file2, args_info.omega_flag);
-	else oNMI<size_t>(file1, file2, args_info.omega_flag);
+	else oNMI<uint32_t>(file1, file2, args_info.omega_flag);
 }
 
 //typedef string NodeId;
@@ -197,10 +197,11 @@ Grouping<NodeId> fileToSet(const char *file) {
 		bool comment = false;
 		for(NodeId field; fields >> field;)
 			s.insert(field);
-		if(!s.empty()==0) {
+		if(!s.empty()) {
 			mbscnt += s.size();
 			ss.push_back(move(s));
-		} else cerr << "Warning: ignoring empty clusters in the file: " << file << endl;
+		}
+		//else cerr << "Warning: ignoring empty clusters in the file: " << file << endl;
 	} while(getline(f, line));
 
 	if(mbscnt != ndsnum) {
@@ -244,12 +245,11 @@ Grouping<string> fileToSet(const char * file) {
 				if(field[0] == '#')
 					break;
 				s.insert(field);
-			} else cerr << "Warning: two consecutive tabs, or tab at the start of"
-				" a line. Ignoring empty fields like this" << endl;
+			}
 		}
 		if(!s.empty())
 			ss.push_back(move(s));
-		else cerr << "Warning: ignoring empty sets in file: " << file << endl;
+		//else cerr << "Warning: ignoring empty clusters in the file: " << file << endl;
 	} while(getline(f, line));
 
 	if(mbscnt != ndsnum) {
