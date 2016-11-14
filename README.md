@@ -49,7 +49,7 @@ Usage: onmi [OPTIONS] clsfile1 clsfile2
 -h, --help     Print help and exit
 -V, --version  Print version and exit
 -v, --verbose  detailed debugging  (default=off)
--a, --allnmis  outmut all NMIs (sum-denominator and LFK besides the
+-a, --allnmis  output all NMIs (sum-denominator and LFK besides the
                  max-denominator one)  (default=off)
 -o, --omega    print the Omega measure (can be slow)  (default=off)
 -t, --textid   use text ids of nodes instead of .cnl format  (default=off)
