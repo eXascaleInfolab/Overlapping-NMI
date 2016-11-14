@@ -48,11 +48,14 @@ Usage: onmi [OPTIONS] clsfile1 clsfile2
 
 -h, --help     Print help and exit
 -V, --version  Print version and exit
--v, --verbose  detailed debugging  (default=off)
+-s, --sync     synchronize the node base, for example to fairly evaluate
+                 against top K selected clusters that are subset of the
+                 original nodes  (default=off)
 -a, --allnmis  output all NMIs (sum-denominator and LFK besides the
                  max-denominator one)  (default=off)
 -o, --omega    print the Omega measure (can be slow)  (default=off)
 -t, --textid   use text ids of nodes instead of .cnl format  (default=off)
+-v, --verbose  detailed debugging  (default=off)
 ```
 The input files contain list of clusters (communities, modules). A typical use case is to have
 the "true" communities in one file and and those found by your algorithm in the other file.
