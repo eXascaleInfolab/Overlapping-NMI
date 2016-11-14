@@ -37,6 +37,7 @@ const char *gengetopt_args_info_help[] = {
   "  -h, --help     Print help and exit",
   "  -V, --version  Print version and exit",
   "  -v, --verbose  detailed debugging  (default=off)",
+  "  -a, --allnmis  outmut all NMIs (sum-denominator and LFK besides the\n                   max-denominator one)  (default=off)",
   "  -o, --omega    print the Omega measure (can be slow)  (default=off)",
   "  -t, --textid   use text ids of nodes instead of .cnl format  (default=off)",
     0
@@ -65,6 +66,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->help_given = 0 ;
   args_info->version_given = 0 ;
   args_info->verbose_given = 0 ;
+  args_info->allnmis_given = 0 ;
   args_info->omega_given = 0 ;
   args_info->textid_given = 0 ;
 }
@@ -74,6 +76,7 @@ void clear_args (struct gengetopt_args_info *args_info)
 {
   FIX_UNUSED (args_info);
   args_info->verbose_flag = 0;
+  args_info->allnmis_flag = 0;
   args_info->omega_flag = 0;
   args_info->textid_flag = 0;
   
@@ -87,8 +90,9 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->help_help = gengetopt_args_info_help[0] ;
   args_info->version_help = gengetopt_args_info_help[1] ;
   args_info->verbose_help = gengetopt_args_info_help[2] ;
-  args_info->omega_help = gengetopt_args_info_help[3] ;
-  args_info->textid_help = gengetopt_args_info_help[4] ;
+  args_info->allnmis_help = gengetopt_args_info_help[3] ;
+  args_info->omega_help = gengetopt_args_info_help[4] ;
+  args_info->textid_help = gengetopt_args_info_help[5] ;
   
 }
 
@@ -207,6 +211,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "version", 0, 0 );
   if (args_info->verbose_given)
     write_into_file(outfile, "verbose", 0, 0 );
+  if (args_info->allnmis_given)
+    write_into_file(outfile, "allnmis", 0, 0 );
   if (args_info->omega_given)
     write_into_file(outfile, "omega", 0, 0 );
   if (args_info->textid_given)
@@ -445,12 +451,13 @@ cmdline_parser_internal (
         { "help",	0, NULL, 'h' },
         { "version",	0, NULL, 'V' },
         { "verbose",	0, NULL, 'v' },
+        { "allnmis",	0, NULL, 'a' },
         { "omega",	0, NULL, 'o' },
         { "textid",	0, NULL, 't' },
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVvot", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVvaot", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -472,6 +479,16 @@ cmdline_parser_internal (
           if (update_arg((void *)&(args_info->verbose_flag), 0, &(args_info->verbose_given),
               &(local_args_info.verbose_given), optarg, 0, 0, ARG_FLAG,
               check_ambiguity, override, 1, 0, "verbose", 'v',
+              additional_error))
+            goto failure;
+        
+          break;
+        case 'a':	/* outmut all NMIs (sum-denominator and LFK besides the max-denominator one).  */
+        
+        
+          if (update_arg((void *)&(args_info->allnmis_flag), 0, &(args_info->allnmis_given),
+              &(local_args_info.allnmis_given), optarg, 0, 0, ARG_FLAG,
+              check_ambiguity, override, 1, 0, "allnmis", 'a',
               additional_error))
             goto failure;
         

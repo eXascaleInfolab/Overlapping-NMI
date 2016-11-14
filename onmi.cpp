@@ -51,7 +51,7 @@ struct MissingFile {};
 struct EmptyFile {};
 
 template <typename NodeId>
-void oNMI(const char * file1, const char * file2, const bool do_omega_also);
+void onmi(const char * file1, const char * file2, const bool do_omega_also, const bool allnmis);
 
 static int global_verbose_flag = 0;
 
@@ -71,8 +71,8 @@ int main(int argc, char ** argv) {
 	const char *file1 = args_info.inputs[0];
 	const char *file2 = args_info.inputs[1];
 	if(args_info.textid_flag)
-		oNMI<string>(file1, file2, args_info.omega_flag);
-	else oNMI<uint32_t>(file1, file2, args_info.omega_flag);
+		onmi<string>(file1, file2, args_info.omega_flag, args_info.allnmis_flag);
+	else onmi<uint32_t>(file1, file2, args_info.omega_flag, args_info.allnmis_flag);
 }
 
 //typedef string NodeId;
@@ -126,10 +126,9 @@ struct OverlapMatrix {
 };
 
 template <typename NodeId>
-void parseHeader(ifstream& fsm, size_t& clsnum, size_t& ndsnum) {
+void parseHeader(ifstream& fsm, string& line, size_t& clsnum, size_t& ndsnum) {
 	// Process the header, which is a special initial comment
 	// The target header is:  # Clusters: <cls_num>[,] Nodes: <cls_num>
-	string line;
 	const string  clsmark = "clusters";
 	const string  ndsmark = "nodes";
 	while(getline(fsm, line)) {
@@ -182,7 +181,7 @@ Grouping<NodeId> fileToSet(const char *file) {
 	string  line;
 	size_t  clsnum = 0;  // The number of clusters
 	size_t  ndsnum = 0;  // The number of clusters
-	parseHeader<NodeId>(f, clsnum, ndsnum);
+	parseHeader<NodeId>(f, line, clsnum, ndsnum);
 
 	// Note: the processing is started from the read line if it was not a comment
 	size_t  mbscnt = 0;  // The number of member nodes in all clusters, should be >= ndsnum
@@ -204,7 +203,7 @@ Grouping<NodeId> fileToSet(const char *file) {
 		//else cerr << "Warning: ignoring empty clusters in the file: " << file << endl;
 	} while(getline(f, line));
 
-	if(mbscnt != ndsnum) {
+	if(ndsnum && mbscnt != ndsnum) {
 		if(mbscnt < ndsnum)
 			cerr << "Warning: the number of nodes specification is incorrect (specified: "
 				<< ndsnum << ") in the file header " << file
@@ -227,7 +226,7 @@ Grouping<string> fileToSet(const char * file) {
 	string  line;
 	size_t  clsnum = 0;  // The number of clusters
 	size_t  ndsnum = 0;  // The number of clusters
-	parseHeader<NodeId>(f, clsnum, ndsnum);
+	parseHeader<NodeId>(f, line, clsnum, ndsnum);
 
 	// Note: the processing is started from the read line if it was not a comment
 	size_t  mbscnt = 0;  // The number of member nodes in all clusters, should be >= ndsnum
@@ -602,7 +601,7 @@ pair<double,double> omega(const NodeToGroup<NodeId> &ng1, const NodeToGroup<Node
 }
 
 template <typename NodeId>
-void oNMI(const char * file1, const char * file2, const bool do_omega_also) {
+void onmi(const char * file1, const char * file2, const bool do_omega_also, const bool allnmis) {
 	Grouping<NodeId> g1 = fileToSet<NodeId>(file1);
 	Grouping<NodeId> g2 = fileToSet<NodeId>(file2);
 	PP1_v(g1.size());
@@ -635,7 +634,6 @@ void oNMI(const char * file1, const char * file2, const bool do_omega_also) {
 		}
 		cout << "Here:" << endl;
 	}
-	const double LFKnmi_ = LFKNMI(om, omFlipped, g1, g2);
 	if(do_omega_also) {
 		pair<double,double> OmegaAndL2Norm = omega(n2g1, n2g2);
 		const double Omega = OmegaAndL2Norm.first;
@@ -643,9 +641,14 @@ void oNMI(const char * file1, const char * file2, const bool do_omega_also) {
 		cout << "Datum:\t"; PP(Omega);
 		cout << "Datum:\t"; PP(L2norm);
 	}
-	cout << "NMI<Max>:\t"; cout << aaronNMI<Max>(om, omFlipped, g1, g2) << endl;
-	cout << "Other measures:" << endl;
-	cout << "  lfkNMI:\t"; cout << LFKnmi_ << endl;
-	cout << "  NMI<Sum>:\t"; cout << aaronNMI<Sum>(om, omFlipped, g1, g2) << endl;
-	// PP(aaronNMI<Min>(om, g1, g2)); This is awful :-)
+	const auto  nmix = aaronNMI<Max>(om, omFlipped, g1, g2);  // NMImax
+	if(allnmis) {
+		cout << "NMImax: " << nmix
+			<< ", NMIsum: " << aaronNMI<Sum>(om, omFlipped, g1, g2)
+			<< ", NMIlfk: " << LFKNMI(om, omFlipped, g1, g2) << endl;
+	} else {
+		if(do_omega_also)
+			cout << "NMImax: ";
+		cout << nmix << endl;
+	}
 }

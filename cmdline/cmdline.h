@@ -41,6 +41,8 @@ struct gengetopt_args_info
   const char *version_help; /**< @brief Print version and exit help description.  */
   int verbose_flag;	/**< @brief detailed debugging (default=off).  */
   const char *verbose_help; /**< @brief detailed debugging help description.  */
+  int allnmis_flag;	/**< @brief outmut all NMIs (sum-denominator and LFK besides the max-denominator one) (default=off).  */
+  const char *allnmis_help; /**< @brief outmut all NMIs (sum-denominator and LFK besides the max-denominator one) help description.  */
   int omega_flag;	/**< @brief print the Omega measure (can be slow) (default=off).  */
   const char *omega_help; /**< @brief print the Omega measure (can be slow) help description.  */
   int textid_flag;	/**< @brief use text ids of nodes instead of .cnl format (default=off).  */
@@ -49,6 +51,7 @@ struct gengetopt_args_info
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int verbose_given ;	/**< @brief Whether verbose was given.  */
+  unsigned int allnmis_given ;	/**< @brief Whether allnmis was given.  */
   unsigned int omega_given ;	/**< @brief Whether omega was given.  */
   unsigned int textid_given ;	/**< @brief Whether textid was given.  */
 
