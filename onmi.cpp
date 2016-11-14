@@ -664,8 +664,7 @@ void onmi(const char * file1, const char * file2, const bool syncnds, const bool
 		pair<double,double> OmegaAndL2Norm = omega(n2g1, n2g2);
 		const double Omega = OmegaAndL2Norm.first;
 		const double L2norm = OmegaAndL2Norm.second;
-		cout << "Datum:\t"; PP(Omega);
-		cout << "Datum:\t"; PP(L2norm);
+		cout << "Omega: " << Omega << " (L2norm: " << L2norm << "), ";
 	}
 	const auto  nmix = aaronNMI<Max>(om, omFlipped, g1, g2);  // NMImax
 	if(allnmis) {
