@@ -28,7 +28,8 @@ However, to extend the input options and automatically regenerate the input pars
 [*gengetopt*](https://www.gnu.org/software/gengetopt) application should be installed: `$ sudo apt-get install gengetopt`.
 
 ## Compilation
-Just execute `$ make`.
+Just execute `$ make`.  
+To update/extend the input parameters just modify `onmi.ggo` and run `GenerateArgparser.sh` (calls `gengetopt`).
 
 # Usage
 
@@ -51,13 +52,13 @@ Usage: onmi [OPTIONS] clsfile1 clsfile2
   -o, --omega    print the Omega measure (can be slow)  (default=off)
   -t, --textid   use text ids of nodes instead of .cnl format  (default=off)
 ```
-The files contain list of clusters (communities, modules). A typical use case is to have
-the "true" communities in one file and and those found by your algorithm
-in the other file.
+The input files contain list of clusters (communities, modules). A typical use case is to have
+the "true" communities in one file and and those found by your algorithm in the other file.
 
-Input file format is CNL (cluster nodes list). One line per cluster. The nodes are
-separated by whitespace, and any non-whitespace characters may be used in the
-node names. Line comments are allowed using `#`. Example of the CNL format:
+The default input file format is CNL (cluster nodes list), where each cluster is
+represented by one line. The nodes are separated by whitespace, and any non-whitespace
+characters may be used in the node names. Line comments are allowed using `#`.  
+Example of the CNL format:
 ```
 # The comments start with '#' like this line
 # Each non-commented line is a module(cluster, community) consisting of the the member nodes separated by space / tab
@@ -65,7 +66,7 @@ node names. Line comments are allowed using `#`. Example of the CNL format:
 1 2
 2
 ```
-A node id is unsigned integer by default, and it can be any word not starting with the comment symbol `#` if `-t` option is specified to used text ids.
+A node id is unsigned integer by default, and it can be any word not starting with the comment symbol `#` if `-t` option is specified to use text ids.
 
 > Any line starting with `#` is omitted as a comment, also as any remained part of the line starting with `#` in the *textid* mode
 
