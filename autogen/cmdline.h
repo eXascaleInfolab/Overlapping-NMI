@@ -39,8 +39,8 @@ struct gengetopt_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  int sync_flag;	/**< @brief synchronize the node base, for example to fairly evaluate against top K selected clusters that are subset of the original nodes (default=off).  */
-  const char *sync_help; /**< @brief synchronize the node base, for example to fairly evaluate against top K selected clusters that are subset of the original nodes help description.  */
+  int sync_flag;	/**< @brief synchronize the node base, for example to fairly evaluate against the top K selected clusters that are subset of the original nodes (default=off).  */
+  const char *sync_help; /**< @brief synchronize the node base, for example to fairly evaluate against the top K selected clusters that are subset of the original nodes help description.  */
   int allnmis_flag;	/**< @brief output all NMIs (sum-denominator and LFK besides the max-denominator one) (default=off).  */
   const char *allnmis_help; /**< @brief output all NMIs (sum-denominator and LFK besides the max-denominator one) help description.  */
   int omega_flag;	/**< @brief print the Omega measure (can be slow) (default=off).  */

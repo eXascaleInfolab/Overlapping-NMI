@@ -1,7 +1,11 @@
 #!/bin/sh
-# Generate Arguments parser from the onmi.ggo
+# Generate Arguments parser
 
-sh cmdline &> /dev/null
-gengetopt  --unamed-opts --output-dir cmdline < onmi.ggo
+sh -c 'mkdir autogen'  2> /dev/null
+gengetopt  --output-dir autogen -i args.ggo
 
-echo  The arguments parser is generated
+if [ $? -eq 0 ]; then
+	echo  "The arguments parser is generated"
+else
+	echo  "The arguments parser generation is FAILED"
+fi

@@ -49,12 +49,12 @@
 			<Add option="-std=c++14" />
 			<Add option="-fexceptions" />
 			<Add directory="include" />
-			<Add directory="cmdline" />
+			<Add directory="autogen" />
 		</Compiler>
-		<Unit filename="cmdline/cmdline.c">
+		<Unit filename="autogen/cmdline.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="cmdline/cmdline.h" />
+		<Unit filename="autogen/cmdline.h" />
 		<Unit filename="include/aaron_utils.hpp" />
 		<Unit filename="onmi.cpp" />
 		<Extensions>
