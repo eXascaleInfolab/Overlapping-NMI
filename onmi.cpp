@@ -151,7 +151,7 @@ void parseHeader(ifstream& fsm, string& line, size_t& clsnum, size_t& ndsnum) {
 		fields >> field;
 		if(field.length() != clsmark.length())
 			continue;
-		// Conver to lower case
+		// Convert to lower case
 		for(size_t i = 0; i < field.length(); ++i)
 			field[i] = tolower(field[i]);
 		if(field != clsmark)
@@ -176,25 +176,19 @@ void parseHeader(ifstream& fsm, string& line, size_t& clsnum, size_t& ndsnum) {
 }
 
 template <typename NodeId>
-bool loadCluster(typename Grouping<NodeId>::value_type& cl, const string& line)
+NodeId to_id(string val)
 {
-	istringstream fields(line);
-	for(NodeId field; fields >> field;)
-		cl.insert(field);
-	return !cl.empty();
+	return stoul(val);
 }
 
 template <>
-bool loadCluster<string>(typename Grouping<string>::value_type& cl, const string& line)
+string to_id<string>(string val)
 {
-	istringstream fields(line);
-	for(string field; fields >> field; ) {
-		// Skip commented tails
-		if(field.empty() || field[0] == '#')
-			break;
-		cl.insert(field);
-	}
-	return !cl.empty();
+	// Skip share part if exists
+	size_t iend = val.find(':');
+	if(iend != string::npos)
+		val.resize(iend);
+	return val;
 }
 
 template <typename NodeId>
@@ -222,8 +216,23 @@ Grouping<NodeId> fileToSet(const char *file, unordered_set<NodeId> *nodes=nullpt
 			continue;
 
 		typename Grouping<NodeId>::value_type cl;
+		// Load cluster
+		istringstream fields(line);
+		string field;
+		fields >> field;
+		// Skip cluster id if specified
+		if(field[field.length() - 1] == '>' && !(fields >> field))
+			continue;
+		do {
+			// Skip commented tails
+			if(field.empty() || field[0] == '#')
+				break;
+			// Note: this algorithm does not support node shares (will be skipped)
+			cl.insert(to_id<NodeId>(field));
+		} while(fields >> field);
+
 		//forEach(const string &field, amd::rangeOverStream(fields, "\t ")) {
-		if(loadCluster<NodeId>(cl, line)) {
+		if(!cl.empty()) {
 			if(nodes)
 				nodes->insert(cl.begin(), cl.end());
 			mbscnt += cl.size();

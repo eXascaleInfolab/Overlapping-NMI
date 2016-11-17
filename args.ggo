@@ -1,0 +1,51 @@
+# Configuration file for the automatic generation of the ONMI input options parsing
+
+package "onmi"
+version "0.2"
+
+purpose "Compare sets of clusters by their members (nodes) using various measures (NMI, Omega) and considering overlaps"
+
+usage "onmi [OPTIONS] clsfile1 clsfile2"
+option  "sync" s  "synchronize the node base, for example to fairly evaluate against the top K selected clusters that are subset of the original nodes"  flag off
+option  "allnmis" a  "output all NMIs (sum-denominator and LFK besides the max-denominator one)"  flag off
+option  "omega" o  "print the Omega measure (can be slow)"  flag off
+option  "textid" t  "use text ids of nodes instead of .cnl format"  flag off
+option  "verbose" v  "detailed debugging"  flag off
+
+args "--unamed-opts=clusterings"   # Allow input files to be unnamed parameters
+
+# Basic structure, see https://www.gnu.org/software/gengetopt/gengetopt.html#Basic-Usage
+#     package "<packname>"
+#     version "<version>"
+#     purpose "<purpose>"
+#     usage "<usage>"
+#     description "<description>"
+#     versiontext "<versiontext>"
+#
+#     args "<command line options>"
+#
+#     option <long> <short> "<desc>"
+#         {details="<detailed description>"}
+#         {argtype} {typestr="<type descr>"}
+#         {values="<value1>","<value2>",...}
+#         {default="<default value>"}
+#         {dependon="<other option>"}
+#         {required} {argoptional} {multiple}
+#         {hidden}
+#
+#     option <long> <short> "<desc>" flag <on/off>
+#
+#     section "section name" {sectiondesc="optional section description"}
+#
+#     text "a textual sentence"
+#
+#
+# Mutually exclusive options should belong to a group:
+#
+#     defgroup "<group name>" {groupdesc="<group description>"} {required}
+#     groupoption <long> <short> "<desc>" <argtype> group="<group name>" \
+#          {argoptional} {multiple}
+#
+#     defgroup "my grp2"
+#     defgroup "grp1" groupdesc="an option of this group is required" required
+#     groupoption "opta" a "string a" group="grp1" multiple
