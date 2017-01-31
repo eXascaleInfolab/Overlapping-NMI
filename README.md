@@ -29,7 +29,7 @@ However, to extend the input options and automatically regenerate the input pars
 
 ## Compilation
 Just execute `$ make`.  
-To update/extend the input parameters just modify `onmi.ggo` and run `GenerateArgparser.sh` (calls `gengetopt`).
+To update/extend the input parameters just modify `args.ggo` and run `GenerateArgparser.sh` (calls `gengetopt`).
 
 # Usage
 
@@ -72,8 +72,9 @@ Example of the CNL format:
 2
 ```
 A node id is unsigned integer by default, and it can be any word not starting with the comment symbol `#` if `-t` option is specified to use text ids.
-
-> Any line starting with `#` is omitted as a comment, also as any remained part of the line starting with `#` in the *textid* mode
+>
+- Any line starting with `#` is omitted as a comment, also as any remained part of the line starting with `#` in the *textid* mode
+- Ids can't contain `:` symbol, because it is used to specify the membership share in the CNL format, which is not supported by onmi. The id part starting from the `:` symbol is omitted (trimmed).
 
 # Related Projects
 - [GenConvNMI](https://github.com/eXascaleInfolab/GenConvNMI) - Overlapping NMI evaluation that is compatible with the original NMI (unlike the `onmi`).

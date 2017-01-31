@@ -208,7 +208,7 @@ Grouping<NodeId> fileToSet(const char *file, unordered_set<NodeId> *nodes=nullpt
 		nodes->reserve(ndsnum);
 	}
 
-	// Note: the processing is started from the read line if it was not a comment
+	// Note: the processing is started from the read line
 	size_t  mbscnt = 0;  // The number of member nodes in all clusters, should be >= ndsnum
 	do {
 		// Skip empty lines and comments
