@@ -230,8 +230,9 @@ Grouping<NodeId> fileToSet(const char *file, unordered_set<NodeId> *nodes=nullpt
 		size_t  cmsbytes = 0;
 #ifdef __unix__
 		struct stat  filest;
-		if(stat(file, &filest))
+		if(!stat(file, &filest))
 			cmsbytes = filest.st_size;
+		//fprintf(stderr, "# %s: %lu bytes\n", fname, cmsbytes);
 #endif // __unix
 		// Get length of the file
 		if(!cmsbytes) {
