@@ -294,10 +294,10 @@ Grouping<NodeId> fileToSet(const char *file, unordered_set<NodeId> *nodes=nullpt
 
 	if(ndsnum && mbscnt != ndsnum) {
 		if(mbscnt < ndsnum)
-			cerr << "Warning: the number of nodes specification is incorrect (specified: "
+			cerr << "# Warning. The number of nodes specification is incorrect (specified: "
 				<< ndsnum << ") in the file header " << file
 				<< ". The actual number of cluster members is " << mbscnt << endl;
-		else cout << "The clusters in " << file << " contain "
+		else cout << "# Warning. The clusters in " << file << " contain "
 			<< double(mbscnt - ndsnum) / ndsnum << "% of overlapping nodes" << endl;
 	}
 
