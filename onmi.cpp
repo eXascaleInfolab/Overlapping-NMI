@@ -32,6 +32,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#ifdef __unix__
+#include <sys/stat.h>
+#endif // __unix__
+
 #include "aaron_utils.hpp"
 
 #include "cmdline.h"
@@ -191,21 +195,61 @@ string to_id<string>(string val)
 	return val;
 }
 
+void estimateSizes(size_t cmsbytes, size_t& ndsnum, size_t& clsnum)
+{
+	if(!cmsbytes)
+		return;
+
+	size_t  magn = 10;  // Decimal ids magnitude
+	unsigned  img = 1;  // Index of the magnitude (10^1)
+	size_t  reminder = cmsbytes % magn;  // Reminder in bytes
+	ndsnum = reminder / ++img;  //  img digits + 1 delimiter for each element
+	while(cmsbytes >= magn) {
+		magn *= 10;
+		ndsnum += (cmsbytes - reminder) % magn / ++img;
+		reminder = cmsbytes % magn;
+	}
+
+	// Usually the number of clusters does not increase square root of the number of nodes
+	clsnum = sqrt(ndsnum) + 1;  // Note: +1 to consider rounding down
+}
+
 template <typename NodeId>
 Grouping<NodeId> fileToSet(const char *file, unordered_set<NodeId> *nodes=nullptr) {
 	Grouping<NodeId> ss;
-	ifstream f(file);
+	ifstream f(file);  // TODO: Use open(file) and then open stream from fd
 	unless(f.is_open())
 		throw  MissingFile();
 
 	string  line;
 	size_t  clsnum = 0;  // The number of clusters
-	size_t  ndsnum = 0;  // The number of clusters
+	size_t  ndsnum = 0;  // The number of nodes
 	parseHeader<NodeId>(f, line, clsnum, ndsnum);
+
+	if(!ndsnum) {
+		size_t  cmsbytes = 0;
+#ifdef __unix__
+		struct stat  filest;
+		if(stat(file, &filest))
+			cmsbytes = filest.st_size;
+#endif // __unix
+		// Get length of the file
+		if(!cmsbytes) {
+			f.seekg(0, f.end);
+			cmsbytes = f.tellg();  // The number of bytes in the input communities
+			f.seekg(0, f.beg);
+		}
+		if(cmsbytes && cmsbytes != size_t(-1))  // File length fetching failed
+			estimateSizes(cmsbytes, ndsnum, clsnum);
+	}
+
+	if(clsnum)
+		ss.reserve(clsnum);
 
 	if(nodes && ndsnum) {
 		nodes->clear();
-		nodes->reserve(ndsnum);
+		if(ndsnum)
+			nodes->reserve(ndsnum);
 	}
 
 	// Note: the processing is started from the read line
@@ -240,6 +284,12 @@ Grouping<NodeId> fileToSet(const char *file, unordered_set<NodeId> *nodes=nullpt
 		}
 		//else cerr << "Warning: ignoring empty clusters in the file: " << file << endl;
 	} while(getline(f, line));
+
+	// Rehash the nodes decreasing the allocated space and number of buckets
+	// for the faster iterating if required
+	if(nodes && nodes->size() < nodes->bucket_count() * nodes->max_load_factor() * 0.8f)
+		nodes->reserve(nodes->size());
+	ss.shrink_to_fit();  // Trim preallocated space for the clusters
 
 	if(ndsnum && mbscnt != ndsnum) {
 		if(mbscnt < ndsnum)
@@ -321,8 +371,9 @@ double H(const int x, const int N) {
 		return 0.0;
 	const double Px = double(x) / double(N);
 	assert(x>0 && Px > 0.0);
-	return -x * log2(Px);
+	return -x*log2(Px);
 }
+
 double h (const double p) {
 	if(p < numeric_limits<double>::epsilon()) {
 		assert(p >= 0);
@@ -330,6 +381,7 @@ double h (const double p) {
 	}
 	return -p*log2(p);
 }
+
 double H_X_given_Y (const int y, const int x, const int o, const int N) {
 	// the NON-NORMALIZED mutual information
 	// given sets of size 'l' and 'r', where there are 'o' nodes in common, what's their similarity score?
