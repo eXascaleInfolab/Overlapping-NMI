@@ -129,7 +129,6 @@ struct OverlapMatrix {
 	OverlapMatrix(): om(), N(0)  {}
 };
 
-template <typename NodeId>
 void parseHeader(ifstream& fsm, string& line, size_t& clsnum, size_t& ndsnum) {
 	// Process the header, which is a special initial comment
 	// The target header is:  # Clusters: <cls_num>[,] Nodes: <cls_num>
@@ -224,7 +223,7 @@ Grouping<NodeId> fileToSet(const char *file, unordered_set<NodeId> *nodes=nullpt
 	string  line;
 	size_t  clsnum = 0;  // The number of clusters
 	size_t  ndsnum = 0;  // The number of nodes
-	parseHeader<NodeId>(f, line, clsnum, ndsnum);
+	parseHeader(f, line, clsnum, ndsnum);
 
 	if(!ndsnum) {
 		size_t  cmsbytes = 0;
@@ -294,11 +293,11 @@ Grouping<NodeId> fileToSet(const char *file, unordered_set<NodeId> *nodes=nullpt
 
 	if(ndsnum && mbscnt != ndsnum) {
 		if(mbscnt < ndsnum)
-			cerr << "# Warning. The number of nodes specification is incorrect (specified: "
+			cerr << "WARNING, Specification number of nodes is incorrect (specified: "
 				<< ndsnum << ") in the file header " << file
 				<< ". The actual number of cluster members is " << mbscnt << endl;
-		else cout << "# Warning. The clusters in " << file << " contain "
-			<< double(mbscnt - ndsnum) / ndsnum << "% of overlapping nodes" << endl;
+		else cout << "# The average nodes membership in '" << file << "': "
+			<< float(mbscnt) / ndsnum << endl;
 	}
 
 	return ss;
@@ -690,6 +689,9 @@ void onmi(const char * file1, const char * file2, const bool syncnds, const bool
 	} else {
 		g1 = fileToSet<NodeId>(file1);
 		g2 = fileToSet<NodeId>(file2);
+		if(g1.size() != g2.size())
+            cerr << "WARNING, the number of nodes is different in the collections: "
+                << g1.size() << " != " << g2.size() << endl;
 	}
 
 	PP1_v(g1.size());
