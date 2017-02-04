@@ -1,6 +1,7 @@
 # OvpNMI - Overlapping NMI
 
-An implementation of a Normalized Mutual Information (NMI) measure for sets of overlapping clusters.
+An implementation of a Normalized Mutual Information (NMI) measure for sets of overlapping clusters.  
+*ATTENTION:* OvpNMI does not suitable to evaluate multi-resolution clusterings, see [GenConvNMI](https://github.com/eXascaleInfolab/GenConvNMI) for this.
 
 The paper: *["Normalized Mutual Information to evaluate overlapping community finding algorithms"](http://arxiv.org/abs/1110.2515) by Aaron F. McDaid, Derek Greene, Neil Hurley*  
 This method is based on the method described in Appendix B at the end of:
@@ -10,7 +11,8 @@ by Andrea Lancichinetti, Santo Fortunato and János Kertész*
 Author: Aaron F. McDaid <aaronmcdaid@gmail.com>  
 
 This is a fork of the original [onmi](https://github.com/aaronmcdaid/Overlapping-NMI)
-with the extension purposes (mainly modification of the I/O) to be used in the [PyCaBeM](https://github.com/eXascaleInfolab/PyCABeM) clustering benchmark.  
+with the extension purposes (mainly modification of the I/O, node base synchronization, etc.)
+to be used in the [PyCaBeM](https://github.com/eXascaleInfolab/PyCABeM) clustering benchmark.  
 Changes made by Artem Lutov <artem@exascale.info>
 
 ## Content
@@ -32,10 +34,11 @@ Just execute `$ make`.
 To update/extend the input parameters just modify `args.ggo` and run `GenerateArgparser.sh` (calls `gengetopt`).
 
 # Usage
-
 ```
 $ onmi clsfile1 clsfile2
 ```
+_Applicability Note:_ OvpNMI is extremely fast, but does not suitable to evaluate multi-resolution clusterings, see [GenConvNMI](https://github.com/eXascaleInfolab/GenConvNMI) instead.
+
 Execution Options:
 ```
 $ ./onmi -h
@@ -77,6 +80,6 @@ A node id is unsigned integer by default, and it can be any word not starting wi
 - Ids can't contain `:` symbol, because it is used to specify the membership share in the CNL format, which is not supported by onmi. The id part starting from the `:` symbol is omitted (trimmed).
 
 # Related Projects
-- [GenConvNMI](https://github.com/eXascaleInfolab/GenConvNMI) - Overlapping NMI evaluation that is compatible with the original NMI (unlike the `onmi`).
+- [GenConvNMI](https://github.com/eXascaleInfolab/GenConvNMI) - Overlapping NMI evaluation that is (unlike `onmi`) compatible with the original NMI and suitable for both overlapping and multi resolution (hierarchical) clusterings.
 - [ExecTime](https://bitbucket.org/lumais/exectime/)  - A lightweight resource consumption profiler.
 - [PyCABeM](https://github.com/eXascaleInfolab/PyCABeM) - Python Benchmarking Framework for the Clustering Algorithms Evaluation. Uses extrinsic (NMIs) and intrinsic (Q) measures for the clusters quality evaluation considering overlaps (nodes membership by multiple clusters).
