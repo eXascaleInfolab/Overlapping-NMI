@@ -172,6 +172,12 @@ void parseHeader(ifstream& fsm, string& line, size_t& clsnum, size_t& ndsnum) {
 			if(field == ndsmark)
 				fields >> ndsnum;
 		}
+		// Validate parsed values
+		if(clsnum > ndsnum) {
+			fprintf(stderr, "WARNING parseHeader(), clsnum (%lu) typically should be"
+				" less than ndsnum (%lu)\n", clsnum, ndsnum);
+			//assert(0 && "parseHeader(), clsnum typically should be less than ndsnum");
+		}
 		// Get following line for the unified subsequent processing
 		getline(fsm, line);
 		break;
@@ -194,23 +200,32 @@ string to_id<string>(string val)
 	return val;
 }
 
+//! \brief Estimate zeroized values
+//!
+//! \param cmsbytes size_t  - the number of bytes in the file
+//! \param ndsnum size_t&  - the estimate number of nodes if 0, otherwise omit it
+//! \param clsnum size_t&  - the estimate number of clusters if 0, otherwise omit it
+//! \return void
 void estimateSizes(size_t cmsbytes, size_t& ndsnum, size_t& clsnum)
 {
 	if(!cmsbytes)
 		return;
 
-	size_t  magn = 10;  // Decimal ids magnitude
-	unsigned  img = 1;  // Index of the magnitude (10^1)
-	size_t  reminder = cmsbytes % magn;  // Reminder in bytes
-	ndsnum = reminder / ++img;  //  img digits + 1 delimiter for each element
-	while(cmsbytes >= magn) {
-		magn *= 10;
-		ndsnum += (cmsbytes - reminder) % magn / ++img;
-		reminder = cmsbytes % magn;
+	if(!ndsnum) {
+		size_t  magn = 10;  // Decimal ids magnitude
+		unsigned  img = 1;  // Index of the magnitude (10^1)
+		size_t  reminder = cmsbytes % magn;  // Reminder in bytes
+		ndsnum = reminder / ++img;  //  img digits + 1 delimiter for each element
+		while(cmsbytes >= magn) {
+			magn *= 10;
+			ndsnum += (cmsbytes - reminder) % magn / ++img;
+			reminder = cmsbytes % magn;
+		}
 	}
 
 	// Usually the number of clusters does not increase square root of the number of nodes
-	clsnum = sqrt(ndsnum) + 1;  // Note: +1 to consider rounding down
+	if(!clsnum)
+		clsnum = sqrt(ndsnum) + 1;  // Note: +1 to consider rounding down
 }
 
 template <typename NodeId>
@@ -224,6 +239,9 @@ Grouping<NodeId> fileToSet(const char *file, unordered_set<NodeId> *nodes=nullpt
 	size_t  clsnum = 0;  // The number of clusters
 	size_t  ndsnum = 0;  // The number of nodes
 	parseHeader(f, line, clsnum, ndsnum);
+	// Validate and correct the number of clusters if required
+	if(ndsnum && clsnum > ndsnum)
+		clsnum = ndsnum;
 
 	if(!ndsnum) {
 		size_t  cmsbytes = 0;
