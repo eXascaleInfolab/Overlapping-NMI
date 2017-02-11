@@ -43,6 +43,9 @@ struct gengetopt_args_info
   const char *sync_help; /**< @brief synchronize the node base, for example to fairly evaluate against the top K selected clusters that are subset of the original nodes help description.  */
   int allnmis_flag;	/**< @brief output all NMIs (sum-denominator and LFK besides the max-denominator one) (default=off).  */
   const char *allnmis_help; /**< @brief output all NMIs (sum-denominator and LFK besides the max-denominator one) help description.  */
+  float membership_arg;	/**< @brief average expected membership of nodes in the clusters, > 0, typically >= 1 (default='1').  */
+  char * membership_orig;	/**< @brief average expected membership of nodes in the clusters, > 0, typically >= 1 original value given at command line.  */
+  const char *membership_help; /**< @brief average expected membership of nodes in the clusters, > 0, typically >= 1 help description.  */
   int omega_flag;	/**< @brief print the Omega measure (can be slow) (default=off).  */
   const char *omega_help; /**< @brief print the Omega measure (can be slow) help description.  */
   int textid_flag;	/**< @brief use text ids of nodes instead of .cnl format (default=off).  */
@@ -54,6 +57,7 @@ struct gengetopt_args_info
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int sync_given ;	/**< @brief Whether sync was given.  */
   unsigned int allnmis_given ;	/**< @brief Whether allnmis was given.  */
+  unsigned int membership_given ;	/**< @brief Whether membership was given.  */
   unsigned int omega_given ;	/**< @brief Whether omega was given.  */
   unsigned int textid_given ;	/**< @brief Whether textid was given.  */
   unsigned int verbose_given ;	/**< @brief Whether verbose was given.  */
