@@ -16,10 +16,8 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <getopt.h>
 #include <cmath>
 #include <iostream>
-#include <sstream>
 #include <fstream>
 #include <exception>
 #include <limits>
@@ -32,9 +30,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#ifdef __unix__
-#include <sys/stat.h>
-#endif // __unix__
+#include <getopt.h>
 
 #include "cmdline.h"
 #include "cnl_header_reader.hpp"
