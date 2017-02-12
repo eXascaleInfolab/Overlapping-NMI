@@ -42,23 +42,26 @@ _Applicability Note:_ OvpNMI is extremely fast, but does not suitable to evaluat
 Execution Options:
 ```
 $ ./onmi -h
-onmi 0.2
+onmi 0.3
 
 Compare sets of clusters by their members (nodes) using various measures (NMI,
 Omega) and considering overlaps
 
 Usage: onmi [OPTIONS] clsfile1 clsfile2
 
--h, --help     Print help and exit
--V, --version  Print version and exit
--s, --sync     synchronize the node base, for example to fairly evaluate
-                 against top K selected clusters that are subset of the
-                 original nodes  (default=off)
--a, --allnmis  output all NMIs (sum-denominator and LFK besides the
-                 max-denominator one)  (default=off)
--o, --omega    print the Omega measure (can be slow)  (default=off)
--t, --textid   use text ids of nodes instead of .cnl format  (default=off)
--v, --verbose  detailed debugging  (default=off)
+  -h, --help              Print help and exit
+  -V, --version           Print version and exit
+  -s, --sync              synchronize the node base, for example to fairly
+                            evaluate against the top K selected clusters that
+                            are subset of the original nodes  (default=off)
+  -a, --allnmis           output all NMIs (sum-denominator and LFK besides the
+                            max-denominator one)  (default=off)
+  -m, --membership=FLOAT  average expected membership of nodes in the clusters,
+                            > 0, typically >= 1  (default=`1')
+  -o, --omega             print the Omega measure (can be slow)  (default=off)
+  -t, --textid            use text ids of nodes instead of .cnl format
+                            (default=off)
+  -v, --verbose           detailed debugging  (default=off)
 ```
 The input files contain list of clusters (communities, modules). A typical use case is to have
 the "true" communities in one file and and those found by your algorithm in the other file.

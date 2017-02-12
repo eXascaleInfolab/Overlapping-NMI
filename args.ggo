@@ -1,7 +1,7 @@
 # Configuration file for the automatic generation of the ONMI input options parsing
 
 package "onmi"
-version "0.2"
+version "0.3"
 
 purpose "Compare sets of clusters by their members (nodes) using various measures (NMI, Omega) and considering overlaps"
 
@@ -13,7 +13,7 @@ option  "omega" o  "print the Omega measure (can be slow)"  flag off
 option  "textid" t  "use text ids of nodes instead of .cnl format"  flag off
 option  "verbose" v  "detailed debugging"  flag off
 
-args "--unamed-opts=clusterings"   # Allow input files to be unnamed parameters
+args "--default-optional --unamed-opts=clusterings"   # Set opional opions, allow input files to be unnamed parameters
 
 # Basic structure, see https://www.gnu.org/software/gengetopt/gengetopt.html#Basic-Usage
 #     package "<packname>"
