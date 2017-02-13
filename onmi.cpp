@@ -555,7 +555,7 @@ void onmi(const char * file1, const char * file2, const bool syncnds
 		g2 = fileToSet<NodeId>(file2, membership, &nodes2);
 		if(nodes1.size() != nodes2.size()) {
             cerr << "WARNING, the number of nodes is different in the clusterings: "
-                << nodes1.size() << " vs " << nodes2.size() << ". The nodes"
+                << nodes1.size() << " != " << nodes2.size() << ". The nodes"
                 " will be synchronized by removing non-matching ones from the largest clustering\n";
 			if(nodes1.size() < nodes2.size()) {
 				syncNodes(g2, nodes2, nodes1);  // Sync nodes in the group 2 to nodes1 base
@@ -573,9 +573,6 @@ void onmi(const char * file1, const char * file2, const bool syncnds
 	} else {
 		g1 = fileToSet<NodeId>(file1, membership);
 		g2 = fileToSet<NodeId>(file2, membership);
-		if(g1.size() != g2.size())
-            cerr << "WARNING, the number of nodes is different in the collections: "
-                << g1.size() << " != " << g2.size() << endl;
 	}
 
 	PP1_v(g1.size());
@@ -584,6 +581,9 @@ void onmi(const char * file1, const char * file2, const bool syncnds
 	unless(g2.size() > 0) throw EmptyFile();
 	NodeToGroup<NodeId> n2g1 = nodeToGroup(g1);
 	NodeToGroup<NodeId> n2g2 = nodeToGroup(g2);
+	if(n2g1.size() != n2g2.size())
+		cerr << "WARNING, the number of nodes is different in the collections: "
+			<< n2g1.size() << " != " << n2g2.size() << endl;
 	PP1_v(n2g1.size());
 	PP1_v(n2g2.size());
 	const OverlapMatrix om = overlapMatrix(n2g1, n2g2);
