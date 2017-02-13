@@ -99,7 +99,7 @@ void parseHeader(istream& fsm, string& line, size_t& clsnum, size_t& ndsnum) {
 //! \param membership=1.f float  - average membership of nodes in the clusters, > 0,
 //! 	=> 1 in case all nodes belong to any cluster and overlaps are present (> 1)
 //! \return bool  - the estimation is made
-bool estimateSizes(size_t& ndsnum, size_t& clsnum, size_t cmsbytes, float membership=1.f)
+bool estimateSizes(size_t& ndsnum, size_t& clsnum, size_t cmsbytes, float membership=1.f) noexcept
 {
 	if(membership <= 0) {
 		fprintf(stderr, "WARNING estimateSizes(), invalid membership = %G specified"
@@ -136,7 +136,7 @@ bool estimateSizes(size_t& ndsnum, size_t& clsnum, size_t cmsbytes, float member
 
 	// Usually the number of clusters does not increase square root of the number of nodes
 	if(!clsnum) {
-		clsnum = sqrt(ndsnum * membership) / membership + 1;  // Note: +1 to consider rounding down
+		clsnum = sqrt(ndsnum * membership) + 1;  // Note: +1 to consider rounding down
 		estimated = true;
 	}
 

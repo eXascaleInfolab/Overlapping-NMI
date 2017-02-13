@@ -50,14 +50,15 @@
 			<Add option="-fexceptions" />
 			<Add directory="include" />
 			<Add directory="autogen" />
+			<Add directory="shared" />
 		</Compiler>
 		<Unit filename="autogen/cmdline.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="autogen/cmdline.h" />
 		<Unit filename="include/aaron_utils.hpp" />
-		<Unit filename="include/cnl_header_reader.hpp" />
 		<Unit filename="onmi.cpp" />
+		<Unit filename="shared/cnl_header_reader.hpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
