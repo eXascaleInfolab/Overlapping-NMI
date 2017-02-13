@@ -555,8 +555,7 @@ void onmi(const char * file1, const char * file2, const bool syncnds
 		g2 = fileToSet<NodeId>(file2, membership, &nodes2);
 		if(nodes1.size() != nodes2.size()) {
             cerr << "WARNING, the number of nodes is different in the clusterings: "
-                << nodes1.size() << " != " << nodes2.size() << ". The nodes"
-                " will be synchronized by removing non-matching ones from the largest clustering\n";
+                << nodes1.size() << " != " << nodes2.size() << ", synchronizing.\n";
 			if(nodes1.size() < nodes2.size()) {
 				syncNodes(g2, nodes2, nodes1);  // Sync nodes in the group 2 to nodes1 base
 				assert(nodes2.size() <= nodes1.size());
