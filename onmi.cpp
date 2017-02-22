@@ -84,8 +84,7 @@ template <typename NodeId>
 using Grouping = vector< set< NodeId > >;
 
 template <typename NodeId>
-struct NodeToGroup : public
-		     unordered_map< NodeId, set<int> >
+struct NodeToGroup : public unordered_map< NodeId, set<int> >
 {
 	int sharedGroups(const NodeId n_, const NodeId m_) const {
 		// PP2(n_,m_);
@@ -122,7 +121,7 @@ struct NodeToGroup : public
 };
 
 struct OverlapMatrix {
-	map< pair<int,int> , int> om; // the pair is an ordered pair.
+	map< pair<int,int> , int> om; // the pair is an ordered pair;  count
 	int N;
 
 	OverlapMatrix(): om(), N(0)  {}
@@ -156,6 +155,7 @@ Grouping<NodeId> fileToSet(const char *fname, float membership=1.f
 	size_t  clsnum = 0;  // The number of clusters
 	size_t  ndsnum = 0;  // The number of nodes
 	parseHeader(input, line, clsnum, ndsnum);
+	const bool  estimNodes = ndsnum;  // The number of nodes is estimated
 	const size_t  cmsbytes = ndsnum ? 0 : inputSize(input, fname);
 	if(!ndsnum || !clsnum)
 		estimateSizes(ndsnum, clsnum, cmsbytes, membership);
@@ -209,7 +209,7 @@ Grouping<NodeId> fileToSet(const char *fname, float membership=1.f
 	ss.shrink_to_fit();  // Trim preallocated space for the clusters
 
 	if(ndsnum && mbscnt != ndsnum) {
-		if(mbscnt < ndsnum)
+		if(!estimNodes && mbscnt < ndsnum)
 			fprintf(stderr, "WARNING, Specification number of nodes is incorrect (specified: %lu"
 				") in the header of '%s'. The actual number of members: %lu\n", ndsnum, fname, mbscnt);
 		else printf("# Average membership in '%s': %.4G\n", fname, float(mbscnt) / ndsnum);
