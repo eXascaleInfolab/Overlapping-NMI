@@ -1,7 +1,7 @@
 # OvpNMI - Overlapping NMI
 
 An implementation of a Normalized Mutual Information (NMI) measure for sets of overlapping clusters.  
-*ATTENTION:* OvpNMI does not suitable to evaluate multi-resolution clusterings, see [GenConvNMI](https://github.com/eXascaleInfolab/GenConvNMI) for this.
+*ATTENTION:* does not suitable to evaluate multi-resolution or highly overlapping clusterings because of the used "best match" approximation (see formula 3 in the paper). To evaluate such cases [GenConvNMI](https://github.com/eXascaleInfolab/GenConvNMI) can be applied, which works slower, but suitable for all cases.
 
 The paper: *["Normalized Mutual Information to evaluate overlapping community finding algorithms"](http://arxiv.org/abs/1110.2515) by Aaron F. McDaid, Derek Greene, Neil Hurley*  
 This method is based on the method described in Appendix B at the end of:
@@ -83,7 +83,7 @@ A node id is unsigned integer by default, and it can be any word not starting wi
 - Ids can't contain `:` symbol, because it is used to specify the membership share in the CNL format, which is not supported by onmi. The id part starting from the `:` symbol is omitted (trimmed).
 
 # Related Projects
-- [xmeasures](https://github.com/eXascaleInfolab/xmeasures)  - Extrinsic clustering measures evaluation for the multi-resolution clustering with overlaps (covers): F1_gwah and NMI_om.
+- [xmeasures](https://github.com/eXascaleInfolab/xmeasures)  - Extrinsic clustering measures evaluation for the multi-resolution clustering with overlaps (covers): F1_gm for overlapping multi-resolution clusterings with possible unequal node base and standard NMI for non-overlapping clustering on a single resolution.
 - [GenConvNMI](https://github.com/eXascaleInfolab/GenConvNMI) - Overlapping NMI evaluation that is (unlike `onmi`) compatible with the original NMI and suitable for both overlapping and multi resolution (hierarchical) clusterings.
 - [resmerge](https://github.com/eXascaleInfolab/resmerge)  - Resolution levels clustering merger with filtering. Flattens hierarchy/list of multiple resolutions levels (clusterings) into the single flat clustering with clusters on various resolution levels synchronizing the node base.
 - [ExecTime](https://bitbucket.org/lumais/exectime/)  - A lightweight resource consumption profiler.

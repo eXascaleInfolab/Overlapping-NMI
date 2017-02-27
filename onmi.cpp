@@ -414,8 +414,7 @@ double aaronNMI(const OverlapMatrix &om, const OverlapMatrix &omFlipped
 	}
 	return
 		0.5*( H_Xs+H_Ys - VI_oneSide<false>(omFlipped, g1, g2) - VI_oneSide<false>(om, g2, g1) )
-		/ Combiner()(H_Xs, H_Ys)
-		;
+		/ Combiner()(H_Xs, H_Ys);
 }
 
 typedef long long int lli;
