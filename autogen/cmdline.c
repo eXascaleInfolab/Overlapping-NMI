@@ -37,7 +37,7 @@ const char *gengetopt_args_info_help[] = {
   "  -h, --help              Print help and exit",
   "  -V, --version           Print version and exit",
   "  -s, --sync              synchronize the node base, for example to fairly\n                            evaluate against the top K selected clusters that\n                            are subset of the original nodes  (default=off)",
-  "  -a, --allnmis           output all NMIs (sum-denominator and LFK besides the\n                            max-denominator one)  (default=off)",
+  "  -a, --allnmis           output all NMIs (sqrt and sum-denominators, LFK\n                            besides the max-denominator)  (default=off)",
   "  -m, --membership=FLOAT  average expected membership of nodes in the clusters,\n                            > 0, typically >= 1  (default=`1')",
   "  -o, --omega             print the Omega measure (can be slow)  (default=off)",
   "  -t, --textid            use text ids of nodes instead of .cnl format\n                            (default=off)",
@@ -523,7 +523,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'a':	/* output all NMIs (sum-denominator and LFK besides the max-denominator one).  */
+        case 'a':	/* output all NMIs (sqrt and sum-denominators, LFK besides the max-denominator).  */
         
         
           if (update_arg((void *)&(args_info->allnmis_flag), 0, &(args_info->allnmis_given),

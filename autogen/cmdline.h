@@ -41,8 +41,8 @@ struct gengetopt_args_info
   const char *version_help; /**< @brief Print version and exit help description.  */
   int sync_flag;	/**< @brief synchronize the node base, for example to fairly evaluate against the top K selected clusters that are subset of the original nodes (default=off).  */
   const char *sync_help; /**< @brief synchronize the node base, for example to fairly evaluate against the top K selected clusters that are subset of the original nodes help description.  */
-  int allnmis_flag;	/**< @brief output all NMIs (sum-denominator and LFK besides the max-denominator one) (default=off).  */
-  const char *allnmis_help; /**< @brief output all NMIs (sum-denominator and LFK besides the max-denominator one) help description.  */
+  int allnmis_flag;	/**< @brief output all NMIs (sqrt and sum-denominators, LFK besides the max-denominator) (default=off).  */
+  const char *allnmis_help; /**< @brief output all NMIs (sqrt and sum-denominators, LFK besides the max-denominator) help description.  */
   float membership_arg;	/**< @brief average expected membership of nodes in the clusters, > 0, typically >= 1 (default='1').  */
   char * membership_orig;	/**< @brief average expected membership of nodes in the clusters, > 0, typically >= 1 original value given at command line.  */
   const char *membership_help; /**< @brief average expected membership of nodes in the clusters, > 0, typically >= 1 help description.  */

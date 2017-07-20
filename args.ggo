@@ -7,7 +7,7 @@ purpose "Compare sets of clusters by their members (nodes) using various measure
 
 usage "onmi [OPTIONS] clsfile1 clsfile2"
 option  "sync" s  "synchronize the node base, for example to fairly evaluate against the top K selected clusters that are subset of the original nodes"  flag off
-option  "allnmis" a  "output all NMIs (sum-denominator and LFK besides the max-denominator one)"  flag off
+option  "allnmis" a  "output all NMIs (sqrt and sum-denominators, LFK besides the max-denominator)"  flag off
 option  "membership" m  "average expected membership of nodes in the clusters, > 0, typically >= 1"  float default="1"
 option  "omega" o  "print the Omega measure (can be slow)"  flag off
 option  "textid" t  "use text ids of nodes instead of .cnl format"  flag off
