@@ -54,8 +54,8 @@ Usage: onmi [OPTIONS] clsfile1 clsfile2
   -s, --sync              synchronize the node base, for example to fairly
                             evaluate against the top K selected clusters that
                             are subset of the original nodes  (default=off)
-  -a, --allnmis           output all NMIs (sum-denominator and LFK besides the
-                            max-denominator one)  (default=off)
+  -a, --allnmis           output all NMIs (sqrt and sum-denominators, LFK besides the
+                            max-denominator)  (default=off)
   -m, --membership=FLOAT  average expected membership of nodes in the clusters,
                             > 0, typically >= 1  (default=`1')
   -o, --omega             print the Omega measure (can be slow)  (default=off)
@@ -68,7 +68,7 @@ the "true" communities in one file and and those found by your algorithm in the 
 
 The default input file format is CNL (cluster nodes list), where each cluster is
 represented by one line. The nodes are separated by whitespace, and any non-whitespace
-characters may be used in the node names. Line comments are allowed using `#`.  
+characters may be used in the node names. Empty lines and comments (lines starting with #) are skipped.
 Example of the CNL format:
 ```
 # The comments start with '#' like this line

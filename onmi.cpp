@@ -387,6 +387,12 @@ struct Max {
 	}
 };
 
+struct Sqrt {
+	double operator() (const double H_Xs, const double H_Ys) const {
+		return sqrt(H_Xs * H_Ys);
+	}
+};
+
 struct Sum {
 	double operator() (const double H_Xs, const double H_Ys) const {
 		return 0.5 * (H_Xs + H_Ys);
@@ -615,6 +621,7 @@ void onmi(const char * file1, const char * file2, const bool syncnds
 	const auto  nmix = aaronNMI<Max>(om, omFlipped, g1, g2);  // NMImax
 	if(allnmis) {
 		cout << "NMImax: " << nmix
+			<< ", NMIsqrt: " << aaronNMI<Sqrt>(om, omFlipped, g1, g2)
 			<< ", NMIsum: " << aaronNMI<Sum>(om, omFlipped, g1, g2)
 			<< ", NMIlfk: " << LFKNMI(om, omFlipped, g1, g2) << endl;
 	} else {
