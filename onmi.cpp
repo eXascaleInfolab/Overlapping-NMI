@@ -420,13 +420,14 @@ double aaronNMI(const OverlapMatrix &om, const OverlapMatrix &omFlipped
 		H_Ys += H(x, om.N)+H(om.N-x, om.N);
 	}
 #ifdef DEBUG
-	printf("aaronNMI(), H_Xs: %G (g2 size: %lu), H_Ys: %G (g1 size: %lu)\n"
-			, H_Xs, g2.size(), H_Ys, g1.size());
+	printf("aaronNMI(), H_Xs: %G (g2 size: %lu), H_Ys: %G (g1 size: %lu), VI1: %G, VI2: %G\n"
+			, H_Xs, g2.size(), H_Ys, g1.size(), VI_oneSide<false>(omFlipped, g1, g2), VI_oneSide<false>(om, g2, g1));
 #endif // DEBUG
 	//return 0.5*( H_Xs+H_Ys - VI_oneSide<false>(omFlipped, g1, g2)
 	//- VI_oneSide<false>(om, g2, g1) ) / Combiner()(H_Xs, H_Ys);
 	// Note: initial formula does not work for the sqrt and nax combiners for the fully overlapping clusters:
 	// the ground-truth can be types / multiple categories for the same items (cluster: 1 2; gt: 1 2; 1 2)
+	// Internal Note: the counter example for this measure is rotshift_single.cnl
 	return Combiner()(H_Xs - VI_oneSide<false>(omFlipped, g1, g2),
 		H_Ys - VI_oneSide<false>(om, g2, g1)) / Combiner()(H_Xs, H_Ys);
 }

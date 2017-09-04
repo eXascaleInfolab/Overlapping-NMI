@@ -11,8 +11,7 @@ by Andrea Lancichinetti, Santo Fortunato and János Kertész*
 Author: Aaron F. McDaid <aaronmcdaid@gmail.com>  
 
 This is a fork of the original [onmi](https://github.com/aaronmcdaid/Overlapping-NMI)
-with the extension purposes (mainly modification of the I/O, node base synchronization, etc.)
-to be used in the [PyCaBeM](https://github.com/eXascaleInfolab/PyCABeM) clustering benchmark.  
+with the extension purposes to be used in the [PyCaBeM](https://github.com/eXascaleInfolab/PyCABeM) clustering benchmark. The extendsion and bugfixes include: modification of the I/O, node base synchronization, NMI_sqrt added, normalization border cases fixed (the case of fully overlapping multiple clusters), etc.  
 Changes made by Artem Lutov <artem@exascale.info>
 
 ## Content
