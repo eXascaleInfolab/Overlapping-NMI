@@ -155,7 +155,7 @@ Grouping<NodeId> fileToSet(const char *fname, float membership=1.f
 	size_t  clsnum = 0;  // The number of clusters
 	size_t  ndsnum = 0;  // The number of nodes
 	parseHeader(input, line, clsnum, ndsnum);
-	const bool  estimNodes = ndsnum;  // The number of nodes is estimated
+	const bool  estimNodes = !ndsnum;  // Is the number of nodes parsed or estimated
 	const size_t  cmsbytes = ndsnum ? 0 : inputSize(input, fname);
 	if(!ndsnum || !clsnum)
 		estimateSizes(ndsnum, clsnum, cmsbytes, membership);
@@ -210,9 +210,10 @@ Grouping<NodeId> fileToSet(const char *fname, float membership=1.f
 
 	if(ndsnum && mbscnt != ndsnum) {
 		if(!estimNodes && mbscnt < ndsnum)
-			fprintf(stderr, "WARNING, Specification number of nodes is incorrect (specified: %lu"
+			fprintf(stderr, "WARNING, Specified number of nodes is incorrect (specified: %lu"
 				") in the header of '%s'. The actual number of members: %lu\n", ndsnum, fname, mbscnt);
-		else printf("# Average membership in '%s': %.4G\n", fname, float(mbscnt) / ndsnum);
+		else printf("# Average%s membership in '%s': %.4G (%lu / %lu)\n"
+			, estimNodes ? " estimated" : "", fname, float(mbscnt) / ndsnum, mbscnt, ndsnum);
 	}
 
 	return ss;
@@ -254,7 +255,7 @@ double H(const int x, const int N) {
 		return 0.0;
 	const double Px = double(x) / double(N);
 	assert(x>0 && Px > 0.0);
-	return -x*log2(Px);
+	return x != N ? -x*log2(Px) : 1;  // Matching of the same clusters should yield 1
 }
 
 double h (const double p) {
@@ -262,7 +263,7 @@ double h (const double p) {
 		assert(p >= 0);
 		return 0;
 	}
-	return -p*log2(p);
+	return p <= 1 - numeric_limits<double>::epsilon() ? -p*log2(p) : 1;  // Matching of the same clusters should yield 1
 }
 
 double H_X_given_Y (const int y, const int x, const int o, const int N) {
@@ -418,9 +419,16 @@ double aaronNMI(const OverlapMatrix &om, const OverlapMatrix &omFlipped
 		const int x = g1.at(fromId).size();
 		H_Ys += H(x, om.N)+H(om.N-x, om.N);
 	}
-	return
-		0.5*( H_Xs+H_Ys - VI_oneSide<false>(omFlipped, g1, g2) - VI_oneSide<false>(om, g2, g1) )
-		/ Combiner()(H_Xs, H_Ys);
+#ifdef DEBUG
+	printf("aaronNMI(), H_Xs: %G (g2 size: %lu), H_Ys: %G (g1 size: %lu)\n"
+			, H_Xs, g2.size(), H_Ys, g1.size());
+#endif // DEBUG
+	//return 0.5*( H_Xs+H_Ys - VI_oneSide<false>(omFlipped, g1, g2)
+	//- VI_oneSide<false>(om, g2, g1) ) / Combiner()(H_Xs, H_Ys);
+	// Note: initial formula does not work for the sqrt and nax combiners for the fully overlapping clusters:
+	// the ground-truth can be types / multiple categories for the same items (cluster: 1 2; gt: 1 2; 1 2)
+	return Combiner()(H_Xs - VI_oneSide<false>(omFlipped, g1, g2),
+		H_Ys - VI_oneSide<false>(om, g2, g1)) / Combiner()(H_Xs, H_Ys);
 }
 
 typedef long long int lli;
