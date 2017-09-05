@@ -1,7 +1,8 @@
 # OvpNMI - Overlapping NMI
 
 An implementation of a Normalized Mutual Information (NMI) measure for sets of overlapping clusters.  
-*ATTENTION:* does not suitable to evaluate multi-resolution or highly overlapping clusterings because of the used "best match" approximation (see formula 3 in the paper). To evaluate such cases [GenConvNMI](https://github.com/eXascaleInfolab/GenConvNMI) can be applied, which works slower, but suitable for all cases.
+*ATTENTION:* does not suitable to evaluate multi-resolution or highly overlapping clusterings because of the used "best match" approximation (see formula 3 in the paper). To evaluate such cases [GenConvNMI](https://github.com/eXascaleInfolab/GenConvNMI) can be applied, which works slower, but suitable for all cases.  
+*Internal note:* the counter example for this measure is `rotshift_single.cnl`.
 
 The paper: *["Normalized Mutual Information to evaluate overlapping community finding algorithms"](http://arxiv.org/abs/1110.2515) by Aaron F. McDaid, Derek Greene, Neil Hurley*  
 This method is based on the method described in Appendix B at the end of:
