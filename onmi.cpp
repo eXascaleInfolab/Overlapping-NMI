@@ -269,7 +269,7 @@ double h (const double p) {
 double H_X_given_Y (const int y, const int x, const int o, const int N) {
 	// the NON-NORMALIZED mutual information
 	// given sets of size 'l' and 'r', where there are 'o' nodes in common, what's their similarity score?
-		assert(o>0 && y>=o && x>=o && y   <= N && x   <= N);
+		assert(o>0 && y>=o && x>=o && y <= N && x <= N);
 		const double H_Y = H(y,N) + H(N-y,N);
 		const double H_X = H(x,N) + H(N-x,N); // just used in the assertion
 
@@ -628,6 +628,8 @@ void onmi(const char * file1, const char * file2, const bool syncnds
 		cout << "Omega: " << Omega << " (L2norm: " << L2norm << "), ";
 	}
 	const auto  nmix = aaronNMI<Max>(om, omFlipped, g1, g2);  // NMImax
+	if(nmix < numeric_limits<decltype(nmix)>::epsilon())
+		throw domain_error("ERROR: NMI is not applicable to the specified collections: 0, which says nothing about the similarity\n");
 	if(allnmis) {
 		cout << "NMImax: " << nmix
 			<< ", NMIsqrt: " << aaronNMI<Sqrt>(om, omFlipped, g1, g2)
