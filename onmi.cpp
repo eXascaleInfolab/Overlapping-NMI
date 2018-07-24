@@ -629,7 +629,7 @@ void onmi(const char * file1, const char * file2, const bool syncnds
 	}
 	const auto  nmix = aaronNMI<Max>(om, omFlipped, g1, g2);  // NMImax
 	if(nmix < numeric_limits<decltype(nmix)>::epsilon())
-		throw domain_error("ERROR: NMI is not applicable to the specified collections: 0, which says nothing about the similarity\n");
+		throw domain_error("NMI is not applicable to the specified collections: 0, which says nothing about the similarity\n");
 	if(allnmis) {
 		cout << "NMImax: " << nmix
 			<< ", NMIsqrt: " << aaronNMI<Sqrt>(om, omFlipped, g1, g2)
