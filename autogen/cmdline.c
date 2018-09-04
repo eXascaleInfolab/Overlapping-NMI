@@ -36,7 +36,7 @@ const char *gengetopt_args_info_description = "";
 const char *gengetopt_args_info_help[] = {
   "  -h, --help              Print help and exit",
   "  -V, --version           Print version and exit",
-  "  -s, --sync              synchronize the node base, for example to fairly\n                            evaluate against the top K selected clusters that\n                            are subset of the original nodes  (default=off)",
+  "  -s, --sync              synchronize the node base omitting the non-matching\n                            nodes for the fair evaluation.\n                             The node base is selected automatically as a\n                            clustering having the least number of nodes.\n                            (default=off)",
   "  -a, --allnmis           output all NMIs (sqrt and sum-denominators, LFK\n                            besides the max-denominator)  (default=off)",
   "  -m, --membership=FLOAT  average expected membership of nodes in the clusters,\n                            > 0, typically >= 1  (default=`1')",
   "  -o, --omega             print the Omega measure (can be slow)  (default=off)",
@@ -513,7 +513,8 @@ cmdline_parser_internal (
           cmdline_parser_free (&local_args_info);
           exit (EXIT_SUCCESS);
 
-        case 's':	/* synchronize the node base, for example to fairly evaluate against the top K selected clusters that are subset of the original nodes.  */
+        case 's':	/* synchronize the node base omitting the non-matching nodes for the fair evaluation.
+         The node base is selected automatically as a clustering having the least number of nodes..  */
         
         
           if (update_arg((void *)&(args_info->sync_flag), 0, &(args_info->sync_given),

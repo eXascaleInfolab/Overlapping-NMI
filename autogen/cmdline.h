@@ -39,8 +39,10 @@ struct gengetopt_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  int sync_flag;	/**< @brief synchronize the node base, for example to fairly evaluate against the top K selected clusters that are subset of the original nodes (default=off).  */
-  const char *sync_help; /**< @brief synchronize the node base, for example to fairly evaluate against the top K selected clusters that are subset of the original nodes help description.  */
+  int sync_flag;	/**< @brief synchronize the node base omitting the non-matching nodes for the fair evaluation.
+   The node base is selected automatically as a clustering having the least number of nodes. (default=off).  */
+  const char *sync_help; /**< @brief synchronize the node base omitting the non-matching nodes for the fair evaluation.
+   The node base is selected automatically as a clustering having the least number of nodes. help description.  */
   int allnmis_flag;	/**< @brief output all NMIs (sqrt and sum-denominators, LFK besides the max-denominator) (default=off).  */
   const char *allnmis_help; /**< @brief output all NMIs (sqrt and sum-denominators, LFK besides the max-denominator) help description.  */
   float membership_arg;	/**< @brief average expected membership of nodes in the clusters, > 0, typically >= 1 (default='1').  */

@@ -6,7 +6,8 @@ version "0.3"
 purpose "Compare sets of clusters by their members (nodes) using various measures (NMI, Omega) and considering overlaps"
 
 usage "onmi [OPTIONS] clsfile1 clsfile2"
-option  "sync" s  "synchronize the node base, for example to fairly evaluate against the top K selected clusters that are subset of the original nodes"  flag off
+option  "sync" s  "synchronize the node base omitting the non-matching nodes for the fair evaluation.
+ The node base is selected automatically as a clustering having the least number of nodes."  flag off
 option  "allnmis" a  "output all NMIs (sqrt and sum-denominators, LFK besides the max-denominator)"  flag off
 option  "membership" m  "average expected membership of nodes in the clusters, > 0, typically >= 1"  float default="1"
 option  "omega" o  "print the Omega measure (can be slow)"  flag off
