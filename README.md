@@ -55,11 +55,13 @@ Usage: onmi [OPTIONS] clsfile1 clsfile2
 
   -h, --help              Print help and exit
   -V, --version           Print version and exit
-  -s, --sync              synchronize the node base, for example to fairly
-                            evaluate against the top K selected clusters that
-                            are subset of the original nodes  (default=off)
-  -a, --allnmis           output all NMIs (sqrt and sum-denominators, LFK besides the
-                            max-denominator)  (default=off)
+  -s, --sync=filename     synchronize the node base omitting the non-matching
+                            nodes.
+                            NOTE: The node base is either the first input file
+                            or '-' (automatic selection of the input file
+                            having the least number of nodes).
+  -a, --allnmis           output all NMIs (sqrt and sum-denominators, LFK
+                            besides the max-denominator)  (default=off)
   -m, --membership=FLOAT  average expected membership of nodes in the clusters,
                             > 0, typically >= 1  (default=`1')
   -o, --omega             print the Omega measure (can be slow)  (default=off)
