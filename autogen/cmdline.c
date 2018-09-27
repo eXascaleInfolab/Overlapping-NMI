@@ -36,7 +36,7 @@ const char *gengetopt_args_info_description = "";
 const char *gengetopt_args_info_help[] = {
   "  -h, --help              Print help and exit",
   "  -V, --version           Print version and exit",
-  "  -s, --sync              synchronize the node base omitting the non-matching\n                            nodes for the fair evaluation.\n                             The node base is selected automatically as a\n                            clustering having the least number of nodes.\n                            (default=off)",
+  "  -s, --sync=filename     synchronize the node base omitting the non-matching\n                            nodes.\n                            NOTE: The node base is either the first input file\n                            or '-' (automatic selection of the input file\n                            having the least number of nodes).",
   "  -a, --allnmis           output all NMIs (sqrt and sum-denominators, LFK\n                            besides the max-denominator)  (default=off)",
   "  -m, --membership=FLOAT  average expected membership of nodes in the clusters,\n                            > 0, typically >= 1  (default=`1')",
   "  -o, --omega             print the Omega measure (can be slow)  (default=off)",
@@ -47,6 +47,7 @@ const char *gengetopt_args_info_help[] = {
 
 typedef enum {ARG_NO
   , ARG_FLAG
+  , ARG_STRING
   , ARG_FLOAT
 } cmdline_parser_arg_type;
 
@@ -80,7 +81,8 @@ static
 void clear_args (struct gengetopt_args_info *args_info)
 {
   FIX_UNUSED (args_info);
-  args_info->sync_flag = 0;
+  args_info->sync_arg = NULL;
+  args_info->sync_orig = NULL;
   args_info->allnmis_flag = 0;
   args_info->membership_arg = 1;
   args_info->membership_orig = NULL;
@@ -189,6 +191,8 @@ static void
 cmdline_parser_release (struct gengetopt_args_info *args_info)
 {
   unsigned int i;
+  free_string_field (&(args_info->sync_arg));
+  free_string_field (&(args_info->sync_orig));
   free_string_field (&(args_info->membership_orig));
   
   
@@ -230,7 +234,7 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
   if (args_info->version_given)
     write_into_file(outfile, "version", 0, 0 );
   if (args_info->sync_given)
-    write_into_file(outfile, "sync", 0, 0 );
+    write_into_file(outfile, "sync", args_info->sync_orig, 0);
   if (args_info->allnmis_given)
     write_into_file(outfile, "allnmis", 0, 0 );
   if (args_info->membership_given)
@@ -376,6 +380,7 @@ int update_arg(void *field, char **orig_field,
   char *stop_char = 0;
   const char *val = value;
   int found;
+  char **string_field;
   FIX_UNUSED (field);
 
   stop_char = 0;
@@ -411,6 +416,14 @@ int update_arg(void *field, char **orig_field,
     break;
   case ARG_FLOAT:
     if (val) *((float *)field) = (float)strtod (val, &stop_char);
+    break;
+  case ARG_STRING:
+    if (val) {
+      string_field = (char **)field;
+      if (!no_free && *string_field)
+        free (*string_field); /* free previous string */
+      *string_field = gengetopt_strdup (val);
+    }
     break;
   default:
     break;
@@ -488,7 +501,7 @@ cmdline_parser_internal (
       static struct option long_options[] = {
         { "help",	0, NULL, 'h' },
         { "version",	0, NULL, 'V' },
-        { "sync",	0, NULL, 's' },
+        { "sync",	1, NULL, 's' },
         { "allnmis",	0, NULL, 'a' },
         { "membership",	1, NULL, 'm' },
         { "omega",	0, NULL, 'o' },
@@ -497,7 +510,7 @@ cmdline_parser_internal (
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVsam:otv", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVs:am:otv", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -513,13 +526,15 @@ cmdline_parser_internal (
           cmdline_parser_free (&local_args_info);
           exit (EXIT_SUCCESS);
 
-        case 's':	/* synchronize the node base omitting the non-matching nodes for the fair evaluation.
-         The node base is selected automatically as a clustering having the least number of nodes..  */
+        case 's':	/* synchronize the node base omitting the non-matching nodes.
+        NOTE: The node base is either the first input file or '-' (automatic selection of the input file having the least number of nodes)..  */
         
         
-          if (update_arg((void *)&(args_info->sync_flag), 0, &(args_info->sync_given),
-              &(local_args_info.sync_given), optarg, 0, 0, ARG_FLAG,
-              check_ambiguity, override, 1, 0, "sync", 's',
+          if (update_arg( (void *)&(args_info->sync_arg), 
+               &(args_info->sync_orig), &(args_info->sync_given),
+              &(local_args_info.sync_given), optarg, 0, 0, ARG_STRING,
+              check_ambiguity, override, 0, 0,
+              "sync", 's',
               additional_error))
             goto failure;
         

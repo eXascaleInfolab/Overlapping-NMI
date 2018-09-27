@@ -51,7 +51,7 @@ struct MissingFile {};
 struct EmptyFile {};
 
 template <typename NodeId>
-void onmi(const char * file1, const char * file2, const bool syncnds
+void onmi(const char * file1, const char * file2, const char * syncfile
 , const bool do_omega_also, const bool allnmis, float membership=1.f);
 
 static int global_verbose_flag = 0;
@@ -62,19 +62,19 @@ int main(int argc, char ** argv) {
 	gengetopt_args_info args_info;
 	if (cmdline_parser (argc, argv, &args_info) != 0)
 		exit(1) ;
-	if(args_info.inputs_num != 2) {
+	if(args_info.inputs_num + args_info.sync_given != 2) {
 		cmdline_parser_print_help();
 		exit(1);
 	}
 	if(args_info.verbose_flag) {
 		global_verbose_flag = 1;
 	}
-	const char *file1 = args_info.inputs[0];
-	const char *file2 = args_info.inputs[1];
+	const char *file1 = args_info.sync_given ? args_info.sync_arg : args_info.inputs[0];
+	const char *file2 = args_info.inputs[1 - args_info.sync_given];
 	if(args_info.textid_flag)
-		onmi<string>(file1, file2, args_info.sync_flag, args_info.omega_flag
+		onmi<string>(file1, file2, args_info.sync_arg, args_info.omega_flag
 			, args_info.allnmis_flag, args_info.membership_arg);
-	else onmi<uint32_t>(file1, file2, args_info.sync_flag, args_info.omega_flag
+	else onmi<uint32_t>(file1, file2, args_info.sync_arg, args_info.omega_flag
 		, args_info.allnmis_flag, args_info.membership_arg);
 }
 
@@ -539,6 +539,13 @@ pair<double,double> omega(const NodeToGroup<NodeId> &ng1, const NodeToGroup<Node
 	return make_pair(O,L2norm);
 }
 
+//! \brief Synchronize nodes of the destination collection with the nodes of
+//! the source collection removing empty clusters and non-matching nodes
+//!
+//! \param dcls Grouping<NodeId>&  - reducing clusters
+//! \param dnds unordered_set<NodeId>&  - reducing nodes
+//! \param snds const unordered_set<NodeId>&  - node base
+//! \return void
 template <typename NodeId>
 void syncNodes(Grouping<NodeId>& dcls, unordered_set<NodeId>& dnds, const unordered_set<NodeId>& snds)  // Sync nodes in the group 2
 {
@@ -559,29 +566,30 @@ void syncNodes(Grouping<NodeId>& dcls, unordered_set<NodeId>& dnds, const unorde
 }
 
 template <typename NodeId>
-void onmi(const char * file1, const char * file2, const bool syncnds
+void onmi(const char * file1, const char * file2, const char * syncfile
 , const bool do_omega_also, const bool allnmis, float membership) {
 	Grouping<NodeId>  g1, g2;
-	if(syncnds) {
+	if(syncfile) {
 		unordered_set<NodeId>  nodes1;
 		unordered_set<NodeId>  nodes2;
 		g1 = fileToSet<NodeId>(file1, membership, &nodes1);
 		g2 = fileToSet<NodeId>(file2, membership, &nodes2);
 		if(nodes1.size() != nodes2.size()) {
             cerr << "WARNING, the number of nodes is different in the clusterings: "
-                << nodes1.size() << " != " << nodes2.size() << ", synchronizing.\n";
-			if(nodes1.size() < nodes2.size()) {
+                << nodes1.size() << " != " << nodes2.size() << ", synchronizing...\n";
+			// Force sync with the first file wit the syncfile is not '-'
+			if(nodes1.size() <= nodes2.size() || !(strlen(syncfile) == 1 && *syncfile == '-')) {
 				syncNodes(g2, nodes2, nodes1);  // Sync nodes in the group 2 to nodes1 base
-				assert(nodes2.size() <= nodes1.size());
+				//assert(nodes2.size() <= nodes1.size());
 			} else {
 				syncNodes(g1, nodes1, nodes2);  // Sync nodes in the group 1 to nodes2 base
-				assert(nodes1.size() <= nodes2.size());
+				//assert(nodes1.size() <= nodes2.size());
 			}
-			// Check whether the sync is successful
-			if(nodes1.size() != nodes2.size()) {
-                cerr << "After the synchronization  ndsnum1: " << nodes1.size() << ", ndsnum2: " << nodes2.size() << endl;
-                throw std::domain_error("Input clusterings have different node base and can't be synchronized gracefully\n");
-			}
+			//// Check whether the sync is successful
+			//if(nodes1.size() != nodes2.size()) {
+			//	cerr << "After the synchronization  ndsnum1: " << nodes1.size() << ", ndsnum2: " << nodes2.size() << endl;
+			//	throw std::domain_error("Input clusterings have different node base and can't be synchronized gracefully\n");
+			//}
 		}
 	} else {
 		g1 = fileToSet<NodeId>(file1, membership);
@@ -595,7 +603,7 @@ void onmi(const char * file1, const char * file2, const bool syncnds
 	NodeToGroup<NodeId> n2g1 = nodeToGroup(g1);
 	NodeToGroup<NodeId> n2g2 = nodeToGroup(g2);
 	if(n2g1.size() != n2g2.size())
-		cerr << "WARNING, the number of nodes is different in the collections: "
+		cerr << "WARNING, the number of nodes is different in the collections (the quality will be penalized): "
 			<< n2g1.size() << " != " << n2g2.size() << endl;
 	PP1_v(n2g1.size());
 	PP1_v(n2g2.size());
