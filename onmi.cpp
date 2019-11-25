@@ -29,7 +29,6 @@
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
-
 #include <getopt.h>
 
 #include "cmdline.h"
@@ -56,12 +55,24 @@ void onmi(const char * file1, const char * file2, const char * syncfile
 
 static int global_verbose_flag = 0;
 
-int main(int argc, char ** argv) {
-	// locale system_locale("");
-	// cout.imbue(system_locale); // to get comma-separated integers.
-	gengetopt_args_info args_info;
-	if (cmdline_parser (argc, argv, &args_info) != 0)
-		exit(1) ;
+//! \brief Arguments parser
+struct ArgParser: gengetopt_args_info {
+	ArgParser(int argc, char **argv) {
+		auto  err = cmdline_parser(argc, argv, this);
+		if(err)
+			throw std::invalid_argument("Arguments parsing failed: " + std::to_string(err));
+	}
+
+	~ArgParser() {
+		cmdline_parser_free(this);
+	}
+};
+
+
+int main(int argc, char **argv)
+{
+	ArgParser  args_info(argc, argv);
+
 	if(args_info.inputs_num + args_info.sync_given != 2) {
 		cmdline_parser_print_help();
 		exit(1);
